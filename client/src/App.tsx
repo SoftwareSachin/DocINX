@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Documents from "@/pages/documents";
+import DocumentDetail from "@/pages/document-detail";
 import Chat from "@/pages/chat";
 import Admin from "@/pages/admin";
 
@@ -22,6 +23,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/documents" component={Documents} />
+          <Route path="/documents/:id" component={DocumentDetail} />
           <Route path="/chat" component={Chat} />
           <Route path="/admin" component={Admin} />
         </>

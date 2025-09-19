@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Bot, User, ExternalLink, Copy, Check } from "lucide-react";
+import { Link } from "wouter";
 import { useState } from "react";
 
 interface ChatMessageProps {
@@ -33,8 +34,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
   };
 
   const handleViewSource = (documentId: string) => {
-    // Navigate to document detail page
-    window.location.href = `/documents/${documentId}`;
+    // Navigation handled by Link component in JSX
   };
 
   const formatTime = (dateString: string) => {
@@ -128,15 +128,16 @@ export default function ChatMessage({ message }: ChatMessageProps) {
                             <span className="text-xs text-muted-foreground">
                               {source.confidence}% confidence
                             </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewSource(source.documentId)}
-                              className="h-6 w-6 p-0 text-primary hover:text-primary/80"
-                              data-testid={`button-view-source-${message.id}-${index}`}
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </Button>
+                            <Link href={`/documents/${source.documentId}`}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0 text-primary hover:text-primary/80"
+                                data-testid={`button-view-source-${message.id}-${index}`}
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground line-clamp-2">
