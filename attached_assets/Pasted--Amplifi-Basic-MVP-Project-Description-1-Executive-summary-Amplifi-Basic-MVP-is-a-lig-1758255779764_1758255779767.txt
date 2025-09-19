@@ -1,0 +1,224 @@
+# Amplifi — Basic MVP Project Description
+
+## 1. Executive summary
+
+Amplifi (Basic MVP) is a lightweight, enterprise-ready platform that converts unstructured documents (PDFs, text, scanned images) into searchable, AI-ready knowledge and exposes it via a conversational interface. The MVP focuses on core value: ingest → extract → semantic search → chat-based Q\&A with provenance.
+
+**Primary goals:**
+
+* Enable non-technical users to upload documents and ask natural-language questions.
+* Return precise, sourced answers using a Retrieval-Augmented Generation (RAG) pipeline.
+* Keep the architecture simple, cloud-agnostic, and cost-conscious.
+
+---
+
+## 2. Scope & Out-of-scope (MVP)
+
+**In-scope:**
+
+* Upload of documents (PDF, text, DOCX, images).
+* OCR for scanned documents.
+* Text extraction and basic preprocessing (cleaning, chunking).
+* Embedding generation and vector storage for semantic search.
+* Simple metadata store (document title, source, upload date, uploader).
+* Chat UI that uses vector search + LLM for answers and shows source snippets.
+* Basic RBAC (Admin, User) and authentication.
+* Containerized deployment (Docker / Kubernetes optional).
+
+**Out-of-scope (for MVP):**
+
+* Full knowledge graph / graph DB.
+* Complex ETL connectors (ERP, SharePoint integrations).
+* Multi-tenant enterprise governance (advanced lineage, policies).
+* No-code flow builder.
+* Real-time streaming ingestion.
+
+---
+
+## 3. User stories
+
+1. **As a user**, I can upload documents so the system can index them for search.
+2. **As a user**, I can ask questions in natural language and receive answers with source citations.
+3. **As an admin**, I can view uploaded documents and manage users.
+4. **As a user**, I can see confidence / provenance for each answer and jump to the original document.
+
+---
+
+## 4. High-level architecture
+
+1. **Frontend (UI)**: React + Next.js app for uploads, search/chat, and admin screens.
+2. **Backend API**: FastAPI (Python) or Node.js (Express) to orchestrate ingestion, search, and chat.
+3. **Storage**:
+
+   * Object store for raw files (S3 / MinIO).
+   * Relational DB for metadata (Postgres).
+4. **Processing**:
+
+   * Worker service (Celery / RQ) to run OCR, text extraction, chunking, embedding generation.
+5. **Vector DB**: Pinecone, Weaviate, Milvus, or pgvector (Postgres extension).
+6. **LLM**: External LLM provider (OpenAI) or hosted model (optional) for answer generation.
+
+Data flow: Upload → store raw file → enqueue processing → OCR/extract → chunk → embed → store vectors + metadata → user query → semantic retrieval → LLM prompt with retrieved docs → answer + provenance.
+
+---
+
+## 5. Detailed components
+
+### 5.1 Ingestion service
+
+* Accept file uploads (multipart/form-data API).
+* Validate file types and sizes.
+* Store raw file in object store and create metadata row in Postgres.
+* Enqueue a processing job with file ID.
+
+### 5.2 Processing worker
+
+* Download file from object store.
+* If image / scanned PDF: run OCR (Tesseract or cloud OCR).
+* Extract text (PDFPlumber / unstructured.io for PDFs, python-docx for DOCX).
+* Clean text (remove headers/footers if possible), normalize whitespace.
+* Chunk text into passages (e.g., 500 tokens with 50-token overlap).
+* Generate embeddings for each chunk using chosen embedding model.
+* Store embeddings in vector DB with pointers to document ID and chunk offsets.
+* Store snippet preview and character offsets in metadata table.
+
+### 5.3 Vector DB & search
+
+* Provide K-NN search API.
+* Return top-N chunks with similarity scores and metadata (document ID, offset).
+* Support filtering by metadata (e.g., only docs uploaded by my org).
+
+### 5.4 RAG / LLM orchestration
+
+* Build a prompt template that includes:
+
+  * User question
+  * Retrieved top-N chunks (with source attribution)
+  * Instruction to answer concisely and list sources
+* Call LLM for completion and receive answer.
+* Return answer + list of source snippets and confidence heuristic.
+
+### 5.5 Frontend
+
+* Dashboard: upload area, document list with status (processing/done), search/chat box.
+* Chat UX: show user message, assistant answer, and expandable source cards linking to the original document.
+* Admin UX: user list, document management (delete, reprocess).
+
+---
+
+## 6. Data model (simplified)
+
+**Postgres tables**:
+
+* `users` (id, email, name, role, hashed\_password, created\_at)
+* `documents` (id, title, filename, uploader\_id, s3\_key, status, uploaded\_at)
+* `chunks` (id, document\_id, chunk\_index, text\_preview, char\_start, char\_end)
+* `embeddings` (chunk\_id, vector) — may instead be stored only in the vector DB with chunk metadata
+
+Vector DB will store vector + chunk\_id + similarity metadata.
+
+---
+
+## 7. API spec (key endpoints)
+
+* `POST /api/upload` — upload file, returns document ID.
+* `GET /api/documents` — list documents with status.
+* `POST /api/reprocess/:document_id` — re-run ingestion pipeline.
+* `POST /api/query` — body: {"query": "...", "top\_k": 5}, returns answer + sources.
+* `GET /api/document/:id` — download/view document.
+* `POST /api/auth/login` — authenticate user.
+
+---
+
+## 8. Tech stack recommendation
+
+* **Frontend:** React + Next.js + Tailwind CSS
+* **Backend:** FastAPI (Python) or Node.js (Express)
+* **Workers:** Celery with Redis broker (Python) or BullMQ (Node)
+* **OCR & extraction:** Tesseract (OSS) or Google Vision API (paid)
+* **Embeddings:** OpenAI embeddings or sentence-transformers (HuggingFace)
+* **Vector DB:** pgvector (Postgres) for simplicity or Pinecone/Weaviate
+* **DB:** Postgres
+* **Object store:** S3 or MinIO (for local dev)
+* **Auth:** JWT or Keycloak for RBAC
+* **Deployment:** Docker Compose for MVP; K8s (EKS/GKE/AKS) for scale
+
+---
+
+## 9. Non-functional requirements
+
+* **Latency:** Typical query response < 3 seconds (depends on LLM provider). Aim for 1–3s with caching.
+* **Scalability:** Design worker autoscaling; vector DB that supports sharding.
+* **Security:** TLS, encrypted-at-rest, RBAC, sanitized inputs to avoid prompt injection.
+* **Reliability:** Retry logic for failed worker jobs; idempotent processing.
+
+---
+
+## 10. Testing & QA
+
+* Unit tests for API endpoints and processing logic.
+* Integration tests for end-to-end ingestion → query flow using sample documents.
+* Load test vector search and LLM orchestration for concurrency targets.
+* Manual QA for provenance accuracy and hallucination checks.
+
+---
+
+## 11. Milestones & timeline (8–10 weeks estimate for small team)
+
+**Week 0–1:** Project setup, repo templates, CI, infra scaffolding (DB, object store).
+**Week 2–3:** File upload + storage + processing worker + OCR + text extraction.
+**Week 4:** Embedding generation + vector DB integration + search API.
+**Week 5:** RAG orchestration with LLM + chat endpoint.
+**Week 6:** Frontend MVP (upload, document list, chat UI) + auth.
+**Week 7:** QA, testing, basic monitoring, and bug fixes.
+**Week 8:** Internal pilot, feedback, and polish.
+
+---
+
+## 12. Success metrics
+
+* Time from upload to searchable document (target: < 2 minutes for small docs).
+* Precision of retrieved source chunks (human-evaluated) > 80% on pilot dataset.
+* Average query latency (RAG + LLM) < 3 seconds.
+* User satisfaction score (internal pilot) > 8/10.
+
+---
+
+## 13. Risks & mitigations
+
+* **OCR failures:** Use ensemble OCR (Tesseract + cloud) and surface low-confidence docs for human review.
+* **LLM hallucinations:** Show provenance, limit generation length, and use source-grounding prompts.
+* **Cost overruns from LLM calls:** Use cached responses for repeated queries; tune top\_k and embedding sizes.
+* **Data privacy concerns:** Support private deployments and data deletion workflows.
+
+---
+
+## 14. Team roles (minimal)
+
+* **Product owner / PM** — requirements, prioritization, pilot coordination
+* **Backend engineer (1–2)** — API, workers, DB, vector integration
+* **Frontend engineer (1)** — React UI and admin
+* **ML/Infra engineer (1)** — embeddings, LLM prompts, vector DB ops
+* **QA / DevOps (shared)** — testing, CI/CD, monitoring
+
+---
+
+## 15. Next steps (recommended)
+
+1. Run a 2-week discovery: gather 50 representative documents, label a small ground-truth QA set.
+2. Build the minimal ingestion → vector → query pipeline end-to-end with one LLM provider.
+3. Run pilot with 5–10 users, gather feedback on precision, latency, and UX.
+4. Iterate: add metadata filters, re-ranking, caching, and basic governance.
+
+---
+
+## Appendix: Minimal dev notes
+
+* Chunk size: 400–600 tokens with 50–100 token overlap works well.
+* Top\_k: 3–8 retrieval candidates for LLM prompt (balance context length vs signal).
+* Prompt design: include instruction to cite sources and to answer concisely; include safety guardrails against hallucination.
+* Local dev: use SQLite + pgvector for prototyping; replace with managed services for production.
+
+---
+
+*Document created as a full project description for a Basic Amplifi MVP. Ask to convert this into a one-page PDF, slide deck, or technical diagram next.*
