@@ -79,8 +79,9 @@ export class DocumentProcessor {
     
     try {
       if (mimeType === "application/pdf") {
-        const pdfParse = await import('pdf-parse');
-        const pdfData = await pdfParse.default(fileBuffer);
+        // Use require for pdf-parse to avoid dynamic import issues
+        const pdfParse = require('pdf-parse');
+        const pdfData = await pdfParse(fileBuffer);
         return pdfData.text;
       } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         const mammoth = await import('mammoth');
