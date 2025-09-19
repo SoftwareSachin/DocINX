@@ -53,7 +53,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
       <div className="shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm px-4 py-4 flex items-center justify-center">
         <Link href="/" data-testid="link-home" className="block">
           <img 
-            src="/assets/image_1758268922310.png" 
+            src="/assets/image_1758268675909.png" 
             alt="DocUX logo" 
             className="h-16 w-auto object-contain dark:brightness-110 dark:contrast-110 transition-all mx-auto" 
             data-testid="img-logo"
