@@ -79,14 +79,18 @@ class DocumentService:
         if not document:
             return None
         
+        update_fields = {}
         if status is not None:
-            document.status = status
+            update_fields['status'] = status
         if error_message is not None:
-            document.error_message = error_message
+            update_fields['error_message'] = error_message
         if extracted_text is not None:
-            document.extracted_text = extracted_text
+            update_fields['extracted_text'] = extracted_text
         if processed_at is not None:
-            document.processed_at = processed_at
+            update_fields['processed_at'] = processed_at
+        
+        for field, value in update_fields.items():
+            setattr(document, field, value)
         
         await db.commit()
         await db.refresh(document)

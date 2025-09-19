@@ -44,8 +44,8 @@ class UserService:
         if not user:
             return None
         
-        user.role = role
-        user.updated_at = datetime.now()
+        setattr(user, 'role', role)
+        setattr(user, 'updated_at', datetime.now())
         
         await db.commit()
         await db.refresh(user)

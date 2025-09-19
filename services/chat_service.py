@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, and_, func
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
 import json
 
@@ -31,7 +31,7 @@ class ChatService:
         
         return ChatSessionResponse.model_validate(session)
     
-    async def get_chat_session(self, db: AsyncSession, session_id: str) -> ChatSessionResponse:
+    async def get_chat_session(self, db: AsyncSession, session_id: str) -> Optional[ChatSessionResponse]:
         """Get chat session by ID"""
         result = await db.execute(
             select(ChatSession).where(ChatSession.id == session_id)
@@ -59,7 +59,7 @@ class ChatService:
         session_id: str,
         role: str,
         content: str,
-        sources: List[ChatSource] = None
+        sources: Optional[List[ChatSource]] = None
     ) -> ChatMessageResponse:
         """Create a new chat message"""
         sources_json = None
@@ -118,10 +118,11 @@ class ChatService:
             
             for chunk, document, similarity in similar_chunks:
                 context_chunks.append(chunk.content)
+                chunk_preview = chunk.content[:200] + "..." if len(chunk.content) > 200 else chunk.content
                 sources.append(ChatSource(
                     document_id=document.id,
                     document_title=document.title,
-                    chunk_content=chunk.content[:200] + "..." if len(chunk.content) > 200 else chunk.content
+                    chunk_content=chunk_preview
                 ))
             
             # Build context string

@@ -43,10 +43,11 @@ async def upload_documents(
                 raise HTTPException(status_code=400, detail="File too large")
             
             # Create document record
+            filename = file.filename or "unknown_file"
             document = await document_service.create_document(
                 db=db,
-                title=file.filename,
-                filename=file.filename,
+                title=filename,
+                filename=filename,
                 uploader_id=user_id,
                 file_key=f"uploads/{user_id}/{file.filename}",
                 mime_type=file.content_type,
@@ -60,8 +61,7 @@ async def upload_documents(
             background_tasks.add_task(
                 document_processor.process_document,
                 document.id,
-                file_content,
-                db
+                file_content
             )
         
         return DocumentUploadResponse(

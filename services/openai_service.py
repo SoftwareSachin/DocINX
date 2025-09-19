@@ -1,5 +1,5 @@
 import openai
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from core.config import settings
@@ -32,7 +32,7 @@ class OpenAIService:
     )
     async def generate_chat_completion(
         self,
-        messages: List[dict],
+        messages: List[Dict[str, Any]],
         max_tokens: Optional[int] = 1000,
         temperature: float = 0.7
     ) -> str:
@@ -44,7 +44,7 @@ class OpenAIService:
                 max_tokens=max_tokens,
                 temperature=temperature
             )
-            return response.choices[0].message.content
+            return response.choices[0].message.content or ""
         except Exception as e:
             print(f"Error generating chat completion: {str(e)}")
             raise

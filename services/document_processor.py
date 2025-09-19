@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 
 from db.models import Document, Chunk
+from db.session import AsyncSessionLocal
 from services.document_service import DocumentService
 from services.openai_service import OpenAIService
 from core.config import settings
@@ -19,83 +20,84 @@ class DocumentProcessor:
     async def process_document(
         self,
         document_id: str,
-        file_content: bytes,
-        db: AsyncSession
+        file_content: bytes
     ) -> dict:
         """Process document: extract text, chunk, generate embeddings"""
-        try:
-            # Get document
-            document = await self.document_service.get_document(db, document_id)
-            if not document:
-                raise Exception("Document not found")
+        # Create a new database session for background processing
+        async with AsyncSessionLocal() as db:
+            try:
+                # Get document
+                document = await self.document_service.get_document(db, document_id)
+                if not document:
+                    raise Exception("Document not found")
+                
+                # Update status to processing
+                await self.document_service.update_document(
+                    db=db,
+                    document_id=document_id,
+                    status="processing",
+                    processed_at=datetime.now()
+                )
             
-            # Update status to processing
-            await self.document_service.update_document(
-                db=db,
-                document_id=document_id,
-                status="processing",
-                processed_at=datetime.now()
-            )
-            
-            # Extract text based on file type
-            extracted_text = await self._extract_text(document.mime_type, file_content)
-            
-            # Update document with extracted text
-            await self.document_service.update_document(
-                db=db,
-                document_id=document_id,
-                extracted_text=extracted_text
-            )
-            
-            # Chunk the text
-            chunks = self._chunk_text(extracted_text)
-            
-            # Generate embeddings and store chunks
-            chunks_created = 0
-            for i, chunk in enumerate(chunks):
-                try:
-                    # Generate embedding
-                    embedding = await self.openai_service.generate_embedding(chunk["content"])
-                    
-                    # Create chunk record
-                    chunk_obj = Chunk(
-                        document_id=document_id,
-                        chunk_index=i,
-                        content=chunk["content"],
-                        char_start=chunk["char_start"],
-                        char_end=chunk["char_end"],
-                        embedding=embedding
-                    )
-                    
-                    db.add(chunk_obj)
-                    chunks_created += 1
-                    
-                except Exception as e:
-                    print(f"Error creating chunk {i} for document {document_id}: {str(e)}")
-                    continue
-            
-            await db.commit()
-            
-            # Update document status to ready
-            await self.document_service.update_document(
-                db=db,
-                document_id=document_id,
-                status="ready"
-            )
-            
-            return {"success": True, "chunks_created": chunks_created}
-            
-        except Exception as e:
-            # Update document status to failed
-            await self.document_service.update_document(
-                db=db,
-                document_id=document_id,
-                status="failed",
-                error_message=str(e)
-            )
-            
-            print(f"Error processing document {document_id}: {str(e)}")
-            return {"success": False, "error": str(e)}
+                # Extract text based on file type
+                extracted_text = await self._extract_text(document.mime_type, file_content)
+                
+                # Update document with extracted text
+                await self.document_service.update_document(
+                    db=db,
+                    document_id=document_id,
+                    extracted_text=extracted_text
+                )
+                
+                # Chunk the text
+                chunks = self._chunk_text(extracted_text)
+                
+                # Generate embeddings and store chunks
+                chunks_created = 0
+                for i, chunk in enumerate(chunks):
+                    try:
+                        # Generate embedding
+                        embedding = await self.openai_service.generate_embedding(chunk["content"])
+                        
+                        # Create chunk record
+                        chunk_obj = Chunk(
+                            document_id=document_id,
+                            chunk_index=i,
+                            content=chunk["content"],
+                            char_start=chunk["char_start"],
+                            char_end=chunk["char_end"],
+                            embedding=embedding
+                        )
+                        
+                        db.add(chunk_obj)
+                        chunks_created += 1
+                        
+                    except Exception as e:
+                        print(f"Error creating chunk {i} for document {document_id}: {str(e)}")
+                        continue
+                
+                await db.commit()
+                
+                # Update document status to ready
+                await self.document_service.update_document(
+                    db=db,
+                    document_id=document_id,
+                    status="ready"
+                )
+                
+                return {"success": True, "chunks_created": chunks_created}
+                
+            except Exception as e:
+                # Update document status to failed
+                await self.document_service.update_document(
+                    db=db,
+                    document_id=document_id,
+                    status="failed",
+                    error_message=str(e)
+                )
+                
+                print(f"Error processing document {document_id}: {str(e)}")
+                return {"success": False, "error": str(e)}
     
     async def _extract_text(self, mime_type: str, file_content: bytes) -> str:
         """Extract text from file based on MIME type"""
