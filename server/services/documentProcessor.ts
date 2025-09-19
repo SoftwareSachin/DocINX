@@ -125,11 +125,36 @@ export class DocumentProcessor {
   }
 
   async reprocessDocument(documentId: string): Promise<ProcessingResult> {
-    // Delete existing chunks
-    await storage.deleteChunksByDocument(documentId);
-    
-    // Process again
-    return this.processDocument(documentId);
+    try {
+      const document = await storage.getDocument(documentId);
+      if (!document) {
+        throw new Error("Document not found");
+      }
+
+      // Delete existing chunks
+      await storage.deleteChunksByDocument(documentId);
+      
+      // For reprocessing, we can't access the original file buffer
+      // In production, files would be stored in S3 or similar and we'd fetch them
+      // For now, mark as failed with clear message about missing file content
+      
+      await storage.updateDocument(documentId, { 
+        status: "failed",
+        errorMessage: "Cannot reprocess document: Original file content not available. File would need to be re-uploaded.",
+        processedAt: new Date()
+      });
+
+      return { 
+        success: false, 
+        error: "Cannot reprocess document: Original file content not available. File would need to be re-uploaded." 
+      };
+    } catch (error) {
+      console.error(`Error reprocessing document ${documentId}:`, error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      };
+    }
   }
 }
 
