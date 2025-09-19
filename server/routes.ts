@@ -9,23 +9,16 @@ import { z } from "zod";
 // Configuration for Python AI service
 const PYTHON_AI_SERVICE_URL = process.env.PYTHON_AI_SERVICE_URL || 'http://localhost:8000';
 
-// Helper functions for Python AI service communication
+// Import document processing functionality directly
+import { documentProcessor } from "./services/documentProcessor";
+
+// Helper functions for document processing
 async function processDocumentAsync(documentId: string, buffer: Buffer): Promise<void> {
   try {
-    // Create form data for file upload
-    const formData = new FormData();
-    formData.append('document_id', documentId);
-    formData.append('file', new Blob([buffer]));
-    
-    // Send to Python AI service for processing
-    await axios.post(`${PYTHON_AI_SERVICE_URL}/api/documents/process`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      timeout: 300000 // 5 minute timeout for large files
-    });
+    // Process document using local document processor
+    await documentProcessor.processDocument(documentId, buffer);
   } catch (error) {
-    console.error('Failed to process document via Python AI service:', error);
+    console.error('Failed to process document:', error);
     // Update document status to failed in database
     await storage.updateDocument(documentId, { 
       status: 'failed', 
@@ -36,27 +29,21 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
 
 async function reprocessDocumentAsync(documentId: string): Promise<void> {
   try {
-    await axios.post(`${PYTHON_AI_SERVICE_URL}/api/documents/${documentId}/reprocess`, {
-      timeout: 300000
-    });
+    await documentProcessor.reprocessDocument(documentId);
   } catch (error) {
-    console.error('Failed to reprocess document via Python AI service:', error);
+    console.error('Failed to reprocess document:', error);
   }
 }
 
+// Import chat service
+import { chatService } from "./services/chatService";
+
 async function processChatQuery(sessionId: string, query: string, userId: string): Promise<any> {
   try {
-    const response = await axios.post(`${PYTHON_AI_SERVICE_URL}/api/chat/query`, {
-      session_id: sessionId,
-      query: query,
-      user_id: userId
-    }, {
-      timeout: 60000 // 1 minute timeout for chat
-    });
-    
-    return response.data;
+    const response = await chatService.processQuery(sessionId, query, userId);
+    return response;
   } catch (error) {
-    console.error('Failed to process chat query via Python AI service:', error);
+    console.error('Failed to process chat query:', error);
     return {
       answer: "Sorry, I'm experiencing technical difficulties. Please try again later.",
       sources: []
