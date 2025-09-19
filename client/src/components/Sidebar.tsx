@@ -2,7 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Home, FileText, MessageSquare, Settings, LogOut } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import docinxLogo from "@assets/image_1758263632202.png";
+import docinxLogo from "@assets/generated_images/Transparent_DocINX_logo_design_a0f58ebd.png";
 
 interface SidebarProps {
   currentPage: "dashboard" | "documents" | "chat" | "admin";

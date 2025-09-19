@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Search, MessageSquare, Shield, CheckCircle, Upload, Bot, Users } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
-import docinxLogo from "@assets/image_1758263632202.png";
+import docinxLogo from "@assets/generated_images/Transparent_DocINX_logo_design_a0f58ebd.png";
 
 export default function Landing() {
   const handleLogin = () => {
