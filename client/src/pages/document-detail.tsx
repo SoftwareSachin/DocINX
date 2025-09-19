@@ -139,11 +139,7 @@ export default function DocumentDetail() {
         description={`View details and content for document: ${document.title}`}
       />
       <div className="flex">
-        <Sidebar 
-          user={user} 
-          sidebarOpen={sidebarOpen} 
-          setSidebarOpen={setSidebarOpen} 
-        />
+        <Sidebar currentPage="documents" />
         <main className="flex-1 lg:pl-72">
           <div className="px-4 py-8 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto">
