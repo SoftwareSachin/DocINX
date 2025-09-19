@@ -9,7 +9,7 @@ import { z } from "zod";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { chunks, documents } from "@shared/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, isNotNull } from "drizzle-orm";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -289,18 +289,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .then(results => results[0]);
 
       const storageResult = await db
-        .select({ total: sql<number>`COALESCE(SUM(file_size), 0)` })
+        .select({ total: sql<number>`COALESCE(SUM(${documents.fileSize}), 0)` })
         .from(documents)
         .then(results => results[0]);
 
       const avgTimeResult = await db
         .select({ 
-          avgMinutes: sql<number>`COALESCE(AVG(EXTRACT(EPOCH FROM (processed_at - uploaded_at)) / 60), 0)` 
+          avgMinutes: sql<number>`COALESCE(AVG(CAST((julianday(${documents.processedAt}) - julianday(${documents.uploadedAt})) * 24 * 60 AS REAL)), 0)` 
         })
         .from(documents)
         .where(and(
           eq(documents.status, 'ready'),
-          sql`processed_at IS NOT NULL`
+          isNotNull(documents.processedAt)
         ))
         .then(results => results[0]);
 
@@ -325,7 +325,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         vectorDbHealth,
         storageUsed: `${storageUsedGB} GB`,
         storageLimit: '100 GB', // This would be configurable in production
-        avgResponseTime: '0ms', // Would implement real performance monitoring in production
       };
     } catch (error) {
       console.error("Error getting admin stats:", error);
