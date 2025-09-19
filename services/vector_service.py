@@ -28,7 +28,7 @@ class VectorService:
         db: AsyncSession,
         query_embedding: List[float],
         user_id: str,
-        limit: int = None
+        limit: Optional[int] = None
     ) -> List[Tuple[Chunk, Document, float]]:
         """Search for similar chunks using cosine similarity"""
         if limit is None:
