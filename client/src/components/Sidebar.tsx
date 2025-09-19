@@ -52,7 +52,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
   return (
     <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-card border-r border-border flex flex-col transition-all duration-300`} data-testid="sidebar">
-      <div className="shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm p-0 h-20 flex items-center justify-between overflow-hidden">
+      <div className={`shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm p-0 h-20 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} overflow-hidden`}>
         <Button
           variant="ghost"
           size="sm"
@@ -74,7 +74,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
         )}
       </div>
       
-      <nav className="flex-1 p-4 pt-3">
+      <nav className={`flex-1 ${isCollapsed ? 'px-2 py-3' : 'p-4'} pt-3`}>
         <ul className="space-y-2">
           {navigation.map((item) => {
             const isActive = currentPage === item.key;
@@ -85,7 +85,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
                 <Link href={item.path}>
                   <Button
                     variant="ghost"
-                    className={`w-full ${isCollapsed ? 'justify-center px-2' : 'justify-start'} ${
+                    className={`w-full ${isCollapsed ? 'justify-center px-0 h-10' : 'justify-start'} ${
                       isActive 
                         ? "bg-accent text-accent-foreground font-medium" 
                         : "hover:bg-accent hover:text-accent-foreground"
@@ -103,9 +103,9 @@ export default function Sidebar({ currentPage }: SidebarProps) {
         </ul>
       </nav>
       
-      <div className="p-4 border-t border-border">
+      <div className={`${isCollapsed ? 'p-2' : 'p-4'} border-t border-border`}>
         {isCollapsed ? (
-          <div className="flex flex-col items-center space-y-2">
+          <div className="flex flex-col items-center space-y-3">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
               <span className="text-sm font-medium" data-testid="text-user-initials">
                 {getUserInitials()}
@@ -115,7 +115,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="text-muted-foreground hover:text-foreground p-1"
+              className="text-muted-foreground hover:text-foreground p-2 w-8 h-8 flex items-center justify-center"
               data-testid="button-logout"
               title="Logout"
             >
