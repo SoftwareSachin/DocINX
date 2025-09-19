@@ -1,7 +1,8 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Home, FileText, MessageSquare, Settings, LogOut } from "lucide-react";
+import { Home, FileText, MessageSquare, Settings, LogOut, Menu, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useState } from "react";
 
 interface SidebarProps {
   currentPage: "dashboard" | "documents" | "chat" | "admin";
@@ -10,6 +11,7 @@ interface SidebarProps {
 export default function Sidebar({ currentPage }: SidebarProps) {
   const { user } = useAuth();
   const [location] = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navigation = [
     { name: "Dashboard", path: "/", icon: Home, key: "dashboard" },
@@ -49,16 +51,27 @@ export default function Sidebar({ currentPage }: SidebarProps) {
   };
 
   return (
-    <div className="w-64 bg-card border-r border-border flex flex-col" data-testid="sidebar">
-      <div className="shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm p-0 h-20 flex items-center justify-center overflow-hidden">
-        <Link href="/" data-testid="link-home" className="block w-full h-full">
-          <img 
-            src="/assets/generated_images/Cropped_DocINX_logo_minimal_padding_de18594c.png" 
-            alt="DocUX logo" 
-            className="block w-full h-full object-cover dark:brightness-110 dark:contrast-110 transition-all" 
-            data-testid="img-logo"
-          />
-        </Link>
+    <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-card border-r border-border flex flex-col transition-all duration-300`} data-testid="sidebar">
+      <div className="shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm p-2 h-20 flex items-center justify-between overflow-hidden">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="flex-shrink-0 p-2"
+          data-testid="button-hamburger"
+        >
+          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+        </Button>
+        {!isCollapsed && (
+          <Link href="/" data-testid="link-home" className="block flex-1 h-full">
+            <img 
+              src="/assets/generated_images/Cropped_DocINX_logo_minimal_padding_de18594c.png" 
+              alt="DocUX logo" 
+              className="block w-full h-full object-cover dark:brightness-110 dark:contrast-110 transition-all" 
+              data-testid="img-logo"
+            />
+          </Link>
+        )}
       </div>
       
       <nav className="flex-1 p-4 pt-3">
@@ -72,15 +85,16 @@ export default function Sidebar({ currentPage }: SidebarProps) {
                 <Link href={item.path}>
                   <Button
                     variant="ghost"
-                    className={`w-full justify-start ${
+                    className={`w-full ${isCollapsed ? 'justify-center px-2' : 'justify-start'} ${
                       isActive 
                         ? "bg-accent text-accent-foreground font-medium" 
                         : "hover:bg-accent hover:text-accent-foreground"
                     }`}
                     data-testid={`nav-${item.key}`}
+                    title={isCollapsed ? item.name : undefined}
                   >
-                    <Icon className="mr-3 h-4 w-4" />
-                    {item.name}
+                    <Icon className={`h-4 w-4 ${!isCollapsed ? 'mr-3' : ''}`} />
+                    {!isCollapsed && item.name}
                   </Button>
                 </Link>
               </li>
@@ -90,30 +104,50 @@ export default function Sidebar({ currentPage }: SidebarProps) {
       </nav>
       
       <div className="p-4 border-t border-border">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
-            <span className="text-sm font-medium" data-testid="text-user-initials">
-              {getUserInitials()}
-            </span>
+        {isCollapsed ? (
+          <div className="flex flex-col items-center space-y-2">
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
+              <span className="text-sm font-medium" data-testid="text-user-initials">
+                {getUserInitials()}
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-foreground p-1"
+              data-testid="button-logout"
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate" data-testid="text-user-name">
-              {getUserDisplayName()}
-            </p>
-            <p className="text-xs text-muted-foreground capitalize" data-testid="text-user-role">
-              {(user as any)?.role || "user"}
-            </p>
+        ) : (
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
+              <span className="text-sm font-medium" data-testid="text-user-initials">
+                {getUserInitials()}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate" data-testid="text-user-name">
+                {getUserDisplayName()}
+              </p>
+              <p className="text-xs text-muted-foreground capitalize" data-testid="text-user-role">
+                {(user as any)?.role || "user"}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-foreground p-1"
+              data-testid="button-logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="text-muted-foreground hover:text-foreground p-1"
-            data-testid="button-logout"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
+        )}
       </div>
     </div>
   );
