@@ -22,12 +22,14 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-20">
           <div className="text-center">
             <div className="flex flex-col items-center gap-4 mb-6">
-              <img 
-                src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png" 
-                alt="DocINX logo" 
-                className="h-32 w-auto object-contain mix-blend-mode-multiply dark:mix-blend-mode-normal dark:brightness-110 dark:contrast-110 transition-all drop-shadow-sm" 
-                data-testid="img-hero-logo"
-              />
+              <div className="h-32 w-80 overflow-hidden flex items-center justify-center">
+                <img 
+                  src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png" 
+                  alt="DocINX logo" 
+                  className="h-full w-auto scale-[2.5] object-center dark:brightness-110 dark:contrast-110 transition-all drop-shadow-sm" 
+                  data-testid="img-hero-logo"
+                />
+              </div>
               <Badge variant="secondary" data-testid="badge-hero">
                 Enterprise Document Intelligence Platform
               </Badge>
