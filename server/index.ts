@@ -7,7 +7,18 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Serve generated images statically
+// Serve all attached assets statically
+app.use(
+  "/assets",
+  express.static(path.resolve(import.meta.dirname, "..", "attached_assets"), {
+    index: false,
+    fallthrough: true,
+    maxAge: "1h",
+    etag: true,
+  })
+);
+
+// Serve generated images statically as fallback
 app.use(
   "/assets",
   express.static(path.resolve(import.meta.dirname, "..", "attached_assets", "generated_images"), {
