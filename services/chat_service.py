@@ -118,11 +118,14 @@ class ChatService:
             
             for chunk, document, similarity in similar_chunks:
                 context_chunks.append(chunk.content)
-                chunk_preview = chunk.content[:200] + "..." if len(chunk.content) > 200 else chunk.content
+                content = chunk.content if isinstance(chunk.content, str) else str(chunk.content)
+                chunk_preview = content[:200] + "..." if len(content) > 200 else content
+                doc_id = document.id if isinstance(document.id, str) else str(document.id)
+                doc_title = document.title if isinstance(document.title, str) else str(document.title)
                 sources.append(ChatSource(
-                    document_id=document.id,
-                    document_title=document.title,
-                    chunk_content=chunk_preview
+                    document_id=doc_id,
+                    document_title=doc_title,
+                    chunk_content=str(chunk_preview)
                 ))
             
             # Build context string
