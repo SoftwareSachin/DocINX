@@ -55,7 +55,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
           <img 
             src="/assets/image_1758268675909.png" 
             alt="DocUX logo" 
-            className="block h-14 md:h-16 w-auto mx-auto object-contain max-w-[200px] dark:brightness-110 dark:contrast-110 transition-all" 
+            className="block h-20 md:h-24 w-auto mx-auto object-contain max-w-[220px] dark:brightness-110 dark:contrast-110 transition-all" 
             data-testid="img-logo"
           />
         </Link>
