@@ -38,9 +38,9 @@ class DocumentProcessor:
                     status="processing",
                     processed_at=datetime.now()
                 )
-            
-                # Extract text based on file type
-                extracted_text = await self._extract_text(document.mime_type, file_content)
+                
+                # Extract text based on file type (offload to threadpool)
+                extracted_text = await asyncio.to_thread(self._extract_text_sync, document.mime_type, file_content)
                 
                 # Update document with extracted text
                 await self.document_service.update_document(
@@ -99,7 +99,7 @@ class DocumentProcessor:
                 print(f"Error processing document {document_id}: {str(e)}")
                 return {"success": False, "error": str(e)}
     
-    async def _extract_text(self, mime_type: str, file_content: bytes) -> str:
+    def _extract_text_sync(self, mime_type: str, file_content: bytes) -> str:
         """Extract text from file based on MIME type"""
         try:
             if mime_type == "application/pdf":

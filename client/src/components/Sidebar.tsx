@@ -2,6 +2,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Home, FileText, MessageSquare, Settings, LogOut } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import docinxLogo from "@assets/image_1758263632202.png";
 
 interface SidebarProps {
   currentPage: "dashboard" | "documents" | "chat" | "admin";
@@ -50,9 +51,19 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col" data-testid="sidebar">
-      <div className="p-4 border-b border-border">
-        <h1 className="text-xl font-bold text-primary" data-testid="text-app-title">DocINX</h1>
-        <p className="text-sm text-muted-foreground">Document Intelligence</p>
+      <div className="flex items-center gap-3 p-4 border-b border-border bg-white dark:bg-black">
+        <Link href="/" data-testid="link-home">
+          <img 
+            src={docinxLogo} 
+            alt="DocINX logo" 
+            className="h-8 w-auto shrink-0 object-contain dark:brightness-110" 
+            data-testid="img-logo"
+          />
+        </Link>
+        <div className="flex flex-col">
+          <span className="font-semibold tracking-tight text-black dark:text-white" data-testid="text-brand">DocINX</span>
+          <span className="text-sm text-muted-foreground">Document Intelligence</span>
+        </div>
       </div>
       
       <nav className="flex-1 p-4">

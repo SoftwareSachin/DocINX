@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Search, MessageSquare, Shield, CheckCircle, Upload, Bot, Users } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
+import docinxLogo from "@assets/image_1758263632202.png";
 
 export default function Landing() {
   const handleLogin = () => {
@@ -21,9 +22,17 @@ export default function Landing() {
       <div className="relative overflow-hidden bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-20">
           <div className="text-center">
-            <Badge variant="secondary" className="mb-6" data-testid="badge-hero">
-              Enterprise Document Intelligence Platform
-            </Badge>
+            <div className="flex flex-col items-center gap-4 mb-6">
+              <img 
+                src={docinxLogo} 
+                alt="DocINX logo" 
+                className="h-16 w-auto object-contain dark:brightness-110" 
+                data-testid="img-hero-logo"
+              />
+              <Badge variant="secondary" data-testid="badge-hero">
+                Enterprise Document Intelligence Platform
+              </Badge>
+            </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 tracking-tight" data-testid="hero-title">
               Transform Documents into <br />
               <span className="text-primary">Intelligent Knowledge</span>
