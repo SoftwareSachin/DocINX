@@ -50,19 +50,15 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col" data-testid="sidebar">
-      <div className="flex items-center gap-3 p-4 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm">
-        <Link href="/" data-testid="link-home" className="flex items-center gap-3">
-          <div className="h-12 w-12 overflow-hidden flex items-center justify-center shrink-0">
+      <div className="flex items-center justify-center p-4 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm">
+        <Link href="/" data-testid="link-home">
+          <div className="h-16 w-16 flex items-center justify-center">
             <img 
               src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png" 
               alt="DocINX logo" 
-              className="h-full w-auto scale-[2.8] object-center dark:brightness-110 dark:contrast-110 transition-all" 
+              className="h-full w-auto scale-[2.2] object-center dark:brightness-110 dark:contrast-110 transition-all" 
               data-testid="img-logo"
             />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold tracking-tight text-black dark:text-white" data-testid="text-brand">DocINX</span>
-            <span className="text-sm text-muted-foreground">Document Intelligence</span>
           </div>
         </Link>
       </div>
