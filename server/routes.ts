@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
 import { documentProcessor } from "./services/documentProcessor";
 import { chatService } from "./services/chatService";
 import { z } from "zod";
@@ -38,25 +37,12 @@ const querySchema = z.object({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth middleware
-  await setupAuth(app);
-
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // No authentication needed
 
   // Document routes
-  app.post('/api/documents/upload', isAuthenticated, upload.array('files'), async (req: any, res) => {
+  app.post('/api/documents/upload', upload.array('files'), async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = 'anonymous-user'; // Default user for non-authenticated mode
       const files = req.files as Express.Multer.File[];
       
       if (!files || files.length === 0) {
@@ -99,17 +85,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/documents', isAuthenticated, async (req: any, res) => {
+  app.get('/api/documents', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      let documents;
-      if (user?.role === 'admin') {
-        documents = await storage.getAllDocuments();
-      } else {
-        documents = await storage.getDocumentsByUser(userId);
-      }
+      // Show all documents in non-authenticated mode
+      const documents = await storage.getAllDocuments();
       
       res.json(documents);
     } catch (error) {
@@ -118,20 +97,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/documents/:id', isAuthenticated, async (req: any, res) => {
+  app.get('/api/documents/:id', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
       
       const document = await storage.getDocument(id);
       if (!document) {
         return res.status(404).json({ message: "Document not found" });
-      }
-
-      // Check permissions
-      if (user?.role !== 'admin' && document.uploaderId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
       }
 
       res.json(document);
@@ -141,20 +113,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/documents/:id/reprocess', isAuthenticated, async (req: any, res) => {
+  app.post('/api/documents/:id/reprocess', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
       
       const document = await storage.getDocument(id);
       if (!document) {
         return res.status(404).json({ message: "Document not found" });
-      }
-
-      // Check permissions
-      if (user?.role !== 'admin' && document.uploaderId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
       }
 
       // Reprocess document asynchronously
@@ -169,20 +134,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/documents/:id', isAuthenticated, async (req: any, res) => {
+  app.delete('/api/documents/:id', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
       
       const document = await storage.getDocument(id);
       if (!document) {
         return res.status(404).json({ message: "Document not found" });
-      }
-
-      // Check permissions
-      if (user?.role !== 'admin' && document.uploaderId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
       }
 
       await storage.deleteDocument(id);
@@ -194,9 +152,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Chat routes
-  app.post('/api/chat/query', isAuthenticated, async (req: any, res) => {
+  app.post('/api/chat/query', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = 'anonymous-user';
       const { query, sessionId } = querySchema.parse(req.body);
       
       let currentSessionId = sessionId;
@@ -219,9 +177,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/chat/sessions', isAuthenticated, async (req: any, res) => {
+  app.get('/api/chat/sessions', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = 'anonymous-user';
       const sessions = await storage.getChatSessionsByUser(userId);
       res.json(sessions);
     } catch (error) {
@@ -230,18 +188,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/chat/sessions/:id/messages', isAuthenticated, async (req: any, res) => {
+  app.get('/api/chat/sessions/:id/messages', async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
       
       const session = await storage.getChatSession(id);
       if (!session) {
         return res.status(404).json({ message: "Chat session not found" });
-      }
-
-      if (session.userId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
       }
 
       const messages = await storage.getChatMessages(id);
@@ -253,11 +206,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Stats and dashboard routes
-  app.get('/api/stats/dashboard', isAuthenticated, async (req: any, res) => {
+  app.get('/api/stats/dashboard', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
       const documentStats = await storage.getDocumentStats();
       
       // Calculate real statistics
@@ -269,7 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         processing: documentStats.processing,
         queriesToday: chatStats.todayQueries,
         activeUsers: activeUserStats.activeUsers,
-        ...((user as any)?.role === 'admin' ? await getAdminStats(documentStats) : {}),
+        ...(await getAdminStats(documentStats)), // Always show admin stats in non-auth mode
       };
 
       res.json(stats);
@@ -332,16 +282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
-  // Admin routes
-  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+  // Admin routes (no auth required)
+  app.get('/api/admin/users', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const users = await storage.getAllUsers();
       res.json(users);
     } catch (error) {
@@ -350,15 +293,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch('/api/admin/users/:id/role', isAuthenticated, async (req: any, res) => {
+  app.patch('/api/admin/users/:id/role', async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      
-      if (user?.role !== 'admin') {
-        return res.status(403).json({ message: "Admin access required" });
-      }
-
       const { id } = req.params;
       const { role } = req.body;
 
