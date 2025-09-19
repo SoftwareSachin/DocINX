@@ -52,7 +52,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
   return (
     <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-card border-r border-border flex flex-col transition-all duration-300`} data-testid="sidebar">
-      <div className="shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm p-2 h-20 flex items-center justify-between overflow-hidden">
+      <div className="shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm p-0 h-20 flex items-center justify-between overflow-hidden">
         <Button
           variant="ghost"
           size="sm"
