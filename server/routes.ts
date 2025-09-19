@@ -245,7 +245,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const avgTimeResult = await db
         .select({ 
-          avgMinutes: sql<number>`COALESCE(AVG(CAST((julianday(${documents.processedAt}) - julianday(${documents.uploadedAt})) * 24 * 60 AS REAL)), 0)` 
+          avgMinutes: sql<number>`COALESCE(AVG(EXTRACT(EPOCH FROM (${documents.processedAt} - ${documents.uploadedAt})) / 60), 0)` 
         })
         .from(documents)
         .where(and(
