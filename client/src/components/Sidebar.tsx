@@ -50,20 +50,18 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col" data-testid="sidebar">
-      <div className="flex items-center justify-center p-4 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm">
+      <div className="shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm px-4 py-6">
         <Link href="/" data-testid="link-home">
-          <div className="h-16 w-16 flex items-center justify-center">
-            <img 
-              src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png" 
-              alt="DocINX logo" 
-              className="h-full w-auto scale-[2.2] object-center dark:brightness-110 dark:contrast-110 transition-all" 
-              data-testid="img-logo"
-            />
-          </div>
+          <img 
+            src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png" 
+            alt="DocINX logo" 
+            className="block h-10 w-auto mx-auto object-contain dark:brightness-110 dark:contrast-110 transition-all" 
+            data-testid="img-logo"
+          />
         </Link>
       </div>
       
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 pt-3">
         <ul className="space-y-2">
           {navigation.map((item) => {
             const isActive = currentPage === item.key;
