@@ -79,8 +79,8 @@ export class DocumentProcessor {
     
     try {
       if (mimeType === "application/pdf") {
-        // Lazy load pdf-parse to avoid startup issues
-        const { default: pdfParse } = await import('pdf-parse');
+        // Import pdf-parse properly without trying to access test files
+        const pdfParse = (await import('pdf-parse')).default;
         const pdfData = await pdfParse(fileBuffer);
         return pdfData.text;
       } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
