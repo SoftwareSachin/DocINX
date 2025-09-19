@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send, Bot, User, ExternalLink } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
+import SEOHead from "@/components/SEOHead";
 
 interface ChatMessageType {
   id: string;
@@ -142,7 +143,13 @@ export default function Chat() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <>
+      <SEOHead
+        title="Knowledge Chat"
+        description="Chat with your documents using DocINX AI. Ask questions and get intelligent answers with source citations from your uploaded files."
+        keywords="AI chat, document Q&A, RAG chat, document intelligence, AI assistant"
+      />
+      <div className="flex h-screen bg-background">
       <Sidebar currentPage="chat" />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -237,5 +244,6 @@ export default function Chat() {
         </main>
       </div>
     </div>
+    </>
   );
 }

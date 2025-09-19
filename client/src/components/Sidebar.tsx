@@ -51,7 +51,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col" data-testid="sidebar">
       <div className="p-4 border-b border-border">
-        <h1 className="text-xl font-bold text-primary" data-testid="text-app-title">Amplifi</h1>
+        <h1 className="text-xl font-bold text-primary" data-testid="text-app-title">DocINX</h1>
         <p className="text-sm text-muted-foreground">Document Intelligence</p>
       </div>
       

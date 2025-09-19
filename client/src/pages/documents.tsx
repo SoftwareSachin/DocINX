@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Upload, Search, Eye, Download, Trash2, RotateCw } from "lucide-react";
 import FileUpload from "@/components/FileUpload";
 import DocumentCard from "@/components/DocumentCard";
+import SEOHead from "@/components/SEOHead";
 
 export default function Documents() {
   const { toast } = useToast();
@@ -157,7 +158,13 @@ export default function Documents() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <>
+      <SEOHead
+        title="Document Library"
+        description="Manage your document library in DocINX. Upload, search, and organize your PDF, DOCX, and text files for AI-powered analysis."
+        keywords="document library, file management, PDF upload, document search, file organization"
+      />
+      <div className="flex h-screen bg-background">
       <Sidebar currentPage="documents" />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -333,5 +340,6 @@ export default function Documents() {
         </main>
       </div>
     </div>
+    </>
   );
 }

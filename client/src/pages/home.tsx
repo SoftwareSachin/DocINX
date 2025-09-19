@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { FileText, Cog, Search, Users, Upload } from "lucide-react";
 import FileUpload from "@/components/FileUpload";
 import DocumentCard from "@/components/DocumentCard";
+import SEOHead from "@/components/SEOHead";
 
 export default function Home() {
   const { toast } = useToast();
@@ -56,7 +57,13 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen bg-background">
+    <>
+      <SEOHead
+        title="Dashboard"
+        description="DocINX dashboard - view your document processing statistics, recent uploads, and manage your document intelligence workflow."
+        keywords="document dashboard, file management, document statistics, upload documents"
+      />
+      <div className="flex h-screen bg-background">
       <Sidebar currentPage="dashboard" />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -206,5 +213,6 @@ export default function Home() {
         </main>
       </div>
     </div>
+    </>
   );
 }

@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Search, MessageSquare, Shield, CheckCircle, Upload, Bot, Users } from "lucide-react";
+import SEOHead from "@/components/SEOHead";
 
 export default function Landing() {
   const handleLogin = () => {
@@ -9,7 +10,13 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <SEOHead
+        title="Enterprise Document Intelligence Platform"
+        description="Transform documents into intelligent knowledge with DocINX. Enterprise-grade document processing with AI-powered search and conversational Q&A."
+        keywords="document intelligence, RAG, AI document processing, enterprise search, document analysis, AI chat, document upload"
+      />
+      <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-20">
@@ -162,7 +169,7 @@ export default function Landing() {
             Transform Your Documents Today
           </h2>
           <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto" data-testid="cta-description">
-            Join hundreds of enterprises using Amplifi to unlock the power of their document repositories with advanced AI.
+            Join hundreds of enterprises using DocINX to unlock the power of their document repositories with advanced AI.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -188,5 +195,6 @@ export default function Landing() {
         </div>
       </div>
     </div>
+    </>
   );
 }
