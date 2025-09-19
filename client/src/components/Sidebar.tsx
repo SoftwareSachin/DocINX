@@ -51,12 +51,12 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col" data-testid="sidebar">
-      <div className="flex items-center gap-3 p-4 border-b border-border bg-white dark:bg-black">
+      <div className="flex items-center gap-3 p-4 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm">
         <Link href="/" data-testid="link-home">
           <img 
             src={docinxLogo} 
             alt="DocINX logo" 
-            className="h-8 w-auto shrink-0 object-contain dark:brightness-110" 
+            className="h-8 w-auto shrink-0 object-contain mix-blend-mode-multiply dark:mix-blend-mode-normal dark:brightness-110 dark:contrast-110 transition-all" 
             data-testid="img-logo"
           />
         </Link>
