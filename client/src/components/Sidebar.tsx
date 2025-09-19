@@ -57,10 +57,10 @@ export default function Sidebar({ currentPage }: SidebarProps) {
           variant="ghost"
           size="sm"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex-shrink-0 p-2"
+          className="flex-shrink-0 p-2 ml-2 hover:bg-accent"
           data-testid="button-hamburger"
         >
-          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+          {isCollapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
         </Button>
         {!isCollapsed && (
           <Link href="/" data-testid="link-home" className="block flex-1 h-full">
