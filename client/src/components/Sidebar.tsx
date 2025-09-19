@@ -50,12 +50,12 @@ export default function Sidebar({ currentPage }: SidebarProps) {
 
   return (
     <div className="w-64 bg-card border-r border-border flex flex-col" data-testid="sidebar">
-      <div className="shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm px-4 py-6">
-        <Link href="/" data-testid="link-home">
+      <div className="shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm px-3 py-0 h-32 md:h-36 flex items-center justify-center">
+        <Link href="/" data-testid="link-home" className="w-full h-full flex items-center justify-center">
           <img 
-            src="/assets/image_1758268675909.png" 
+            src="/assets/image_1758268922310.png" 
             alt="DocUX logo" 
-            className="block h-20 md:h-24 w-auto mx-auto object-contain max-w-[220px] dark:brightness-110 dark:contrast-110 transition-all" 
+            className="w-full h-full object-contain dark:brightness-110 dark:contrast-110 transition-all" 
             data-testid="img-logo"
           />
         </Link>
