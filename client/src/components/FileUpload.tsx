@@ -74,17 +74,28 @@ export default function FileUpload({ trigger }: FileUploadProps) {
 
     const fileArray = Array.from(files);
     const validFiles = fileArray.filter(file => {
+      console.log(`Client validation - File: ${file.name}, Type: ${file.type}, Size: ${file.size}`);
+      
       const validTypes = [
         "application/pdf",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
         "text/plain"
       ];
+      
+      // Check file extension as fallback if MIME type detection fails
+      const fileExtension = file.name.toLowerCase().split('.').pop();
+      const validExtensions = ['pdf', 'docx', 'txt'];
+      
       const maxSize = 10 * 1024 * 1024; // 10MB
 
-      if (!validTypes.includes(file.type)) {
+      const isValidType = validTypes.includes(file.type) || 
+                         (file.type === "" && validExtensions.includes(fileExtension || ""));
+
+      if (!isValidType) {
+        console.log(`Rejected file - Name: ${file.name}, Type: "${file.type}", Extension: ${fileExtension}`);
         toast({
           title: "Invalid file type",
-          description: `${file.name} is not a supported file type.`,
+          description: `${file.name} is not a supported file type. Detected type: ${file.type}`,
           variant: "destructive",
         });
         return false;

@@ -17,6 +17,8 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
+    console.log(`File upload - Original name: ${file.originalname}, MIME type: ${file.mimetype}`);
+    
     const allowedTypes = [
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -26,7 +28,8 @@ const upload = multer({
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Unsupported file type"));
+      console.log(`Rejected file type: ${file.mimetype} for file: ${file.originalname}`);
+      cb(new Error(`Unsupported file type: ${file.mimetype}`));
     }
   },
 });
