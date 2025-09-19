@@ -2,9 +2,67 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
-import { documentProcessor } from "./services/documentProcessor";
-import { chatService } from "./services/chatService";
+// Import HTTP client for communicating with Python AI service
+import axios from 'axios';
 import { z } from "zod";
+
+// Configuration for Python AI service
+const PYTHON_AI_SERVICE_URL = process.env.PYTHON_AI_SERVICE_URL || 'http://localhost:8000';
+
+// Helper functions for Python AI service communication
+async function processDocumentAsync(documentId: string, buffer: Buffer): Promise<void> {
+  try {
+    // Create form data for file upload
+    const formData = new FormData();
+    formData.append('document_id', documentId);
+    formData.append('file', new Blob([buffer]));
+    
+    // Send to Python AI service for processing
+    await axios.post(`${PYTHON_AI_SERVICE_URL}/api/documents/process`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      timeout: 300000 // 5 minute timeout for large files
+    });
+  } catch (error) {
+    console.error('Failed to process document via Python AI service:', error);
+    // Update document status to failed in database
+    await storage.updateDocument(documentId, { 
+      status: 'failed', 
+      errorMessage: 'Document processing failed' 
+    });
+  }
+}
+
+async function reprocessDocumentAsync(documentId: string): Promise<void> {
+  try {
+    await axios.post(`${PYTHON_AI_SERVICE_URL}/api/documents/${documentId}/reprocess`, {
+      timeout: 300000
+    });
+  } catch (error) {
+    console.error('Failed to reprocess document via Python AI service:', error);
+  }
+}
+
+async function processChatQuery(sessionId: string, query: string, userId: string): Promise<any> {
+  try {
+    const response = await axios.post(`${PYTHON_AI_SERVICE_URL}/api/chat/query`, {
+      session_id: sessionId,
+      query: query,
+      user_id: userId
+    }, {
+      timeout: 60000 // 1 minute timeout for chat
+    });
+    
+    return response.data;
+  } catch (error) {
+    console.error('Failed to process chat query via Python AI service:', error);
+    return {
+      answer: "Sorry, I'm experiencing technical difficulties. Please try again later.",
+      sources: []
+    };
+  }
+}
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { chunks, documents } from "@shared/schema";
@@ -72,8 +130,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         uploadedDocuments.push(document);
 
-        // Process document asynchronously with file buffer
-        documentProcessor.processDocument(document.id, file.buffer).catch(error => {
+        // Process document asynchronously via Python AI service
+        processDocumentAsync(document.id, file.buffer).catch(error => {
           console.error(`Error processing document ${document.id}:`, error);
         });
       }
@@ -125,8 +183,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Document not found" });
       }
 
-      // Reprocess document asynchronously
-      documentProcessor.reprocessDocument(id).catch(error => {
+      // Reprocess document asynchronously via Python AI service
+      reprocessDocumentAsync(id).catch(error => {
         console.error(`Error reprocessing document ${id}:`, error);
       });
 
@@ -168,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentSessionId = session.id;
       }
 
-      const response = await chatService.processQuery(currentSessionId, query, userId);
+      const response = await processChatQuery(currentSessionId, query, userId);
       
       res.json({
         ...response,

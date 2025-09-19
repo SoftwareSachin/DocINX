@@ -5,8 +5,14 @@ import asyncio
 from core.config import settings
 
 # Create async engine
+# Clean up the database URL for asyncpg compatibility
+db_url = settings.database_url.replace("postgresql://", "postgresql+asyncpg://")
+# Remove sslmode parameter that causes issues with asyncpg
+if "?sslmode=" in db_url:
+    db_url = db_url.split("?sslmode=")[0]
+
 engine = create_async_engine(
-    settings.database_url.replace("postgresql://", "postgresql+asyncpg://"),
+    db_url,
     echo=settings.debug,
     pool_pre_ping=True,
     pool_recycle=300,
