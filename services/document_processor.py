@@ -99,6 +99,86 @@ class DocumentProcessor:
                 print(f"Error processing document {document_id}: {str(e)}")
                 return {"success": False, "error": str(e)}
     
+    async def reprocess_document(self, document_id: str) -> dict:
+        """Reprocess an existing document"""
+        async with AsyncSessionLocal() as db:
+            try:
+                # Get document
+                document = await self.document_service.get_document(db, document_id)
+                if not document:
+                    raise Exception("Document not found")
+                
+                # If we have existing text, just reprocess it
+                if document.extracted_text:
+                    await self.document_service.update_document(
+                        db=db,
+                        document_id=document_id,
+                        status="processing"
+                    )
+                    
+                    # Clear existing chunks first
+                    from db.models import Chunk
+                    from sqlalchemy import delete
+                    await db.execute(delete(Chunk).where(Chunk.document_id == document_id))
+                    await db.commit()
+                    
+                    # Reprocess with existing text
+                    chunks = self._chunk_text(document.extracted_text)
+                    
+                    # Generate embeddings and store chunks
+                    chunks_created = 0
+                    for i, chunk in enumerate(chunks):
+                        try:
+                            # Generate embedding
+                            embedding = await self.openai_service.generate_embedding(chunk["content"])
+                            
+                            # Create chunk record
+                            chunk_obj = Chunk(
+                                document_id=document_id,
+                                chunk_index=i,
+                                content=chunk["content"],
+                                char_start=chunk["start"],
+                                char_end=chunk["end"],
+                                embedding=embedding
+                            )
+                            
+                            db.add(chunk_obj)
+                            chunks_created += 1
+                        except Exception as e:
+                            print(f"Error processing chunk {i}: {str(e)}")
+                            continue
+                    
+                    await db.commit()
+                    
+                    # Update document status
+                    await self.document_service.update_document(
+                        db=db,
+                        document_id=document_id,
+                        status="ready"
+                    )
+                    
+                    return {
+                        "status": "success",
+                        "chunks_created": chunks_created,
+                        "message": f"Document reprocessed successfully with {chunks_created} chunks"
+                    }
+                else:
+                    raise Exception("No extracted text available for reprocessing")
+                    
+            except Exception as e:
+                # Update document status to failed
+                await self.document_service.update_document(
+                    db=db,
+                    document_id=document_id,
+                    status="failed",
+                    error_message=str(e)
+                )
+                
+                return {
+                    "status": "error",
+                    "message": str(e)
+                }
+
     def _extract_text_sync(self, mime_type: str, file_content: bytes) -> str:
         """Extract text from file based on MIME type"""
         try:
