@@ -136,6 +136,52 @@ export class DatabaseStorage implements IStorage {
     return stats;
   }
 
+  async getChatStatistics() {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const [todayQueriesResult] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(chatMessages)
+        .where(
+          and(
+            eq(chatMessages.role, 'user'),
+            sql`${chatMessages.createdAt} >= ${today.toISOString()}`
+          )
+        );
+
+      return {
+        todayQueries: todayQueriesResult?.count || 0,
+      };
+    } catch (error) {
+      console.error("Error getting chat statistics:", error);
+      return { todayQueries: 0 };
+    }
+  }
+
+  async getActiveUserStatistics() {
+    try {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      
+      // Count unique users who have sent messages in the last 24 hours
+      const [activeUsersResult] = await db
+        .select({ count: sql<number>`count(distinct ${chatSessions.userId})` })
+        .from(chatSessions)
+        .leftJoin(chatMessages, eq(chatSessions.id, chatMessages.sessionId))
+        .where(
+          sql`${chatMessages.createdAt} >= ${twentyFourHoursAgo.toISOString()}`
+        );
+
+      return {
+        activeUsers: activeUsersResult?.count || 0,
+      };
+    } catch (error) {
+      console.error("Error getting active user statistics:", error);
+      return { activeUsers: 0 };
+    }
+  }
+
   // Chunk operations
   async createChunk(chunk: InsertChunk): Promise<Chunk> {
     const [created] = await db.insert(chunks).values(chunk).returning();

@@ -9,7 +9,7 @@ export interface ProcessingResult {
 }
 
 export class DocumentProcessor {
-  async processDocument(documentId: string): Promise<ProcessingResult> {
+  async processDocument(documentId: string, fileBuffer?: Buffer): Promise<ProcessingResult> {
     try {
       const document = await storage.getDocument(documentId);
       if (!document) {
@@ -22,8 +22,11 @@ export class DocumentProcessor {
         processedAt: new Date()
       });
 
-      // Extract text based on file type
-      const extractedText = await this.extractText(document);
+      // Extract text based on file type using buffer
+      if (!fileBuffer) {
+        throw new Error("File buffer is required for text extraction");
+      }
+      const extractedText = await this.extractText(document, fileBuffer);
       
       // Update document with extracted text
       await storage.updateDocument(documentId, { 
@@ -71,28 +74,27 @@ export class DocumentProcessor {
     }
   }
 
-  private async extractText(document: any): Promise<string> {
-    // In a real implementation, this would handle different file types:
-    // - PDF: Use PDF parsing library
-    // - DOCX: Use document parsing library
-    // - Images: Use OCR (Tesseract or cloud OCR)
-    // - TXT: Direct text reading
-    
-    // For MVP, we'll simulate text extraction
+  private async extractText(document: any, fileBuffer: Buffer): Promise<string> {
     const mimeType = document.mimeType;
     
-    if (mimeType === "application/pdf") {
-      // Simulate PDF text extraction
-      return `Extracted text from PDF: ${document.filename}\n\nThis is sample extracted content that would come from a PDF parsing library. In production, this would use libraries like pdf-parse or similar to extract actual text content from PDF files.`;
-    } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-      // Simulate DOCX text extraction
-      return `Extracted text from DOCX: ${document.filename}\n\nThis is sample extracted content that would come from a DOCX parsing library. In production, this would use libraries like mammoth or similar to extract actual text content from Word documents.`;
-    } else if (mimeType === "text/plain") {
-      // For text files, we would read the file directly
-      return `Content from text file: ${document.filename}\n\nThis is sample text content. In production, this would be the actual content read from the uploaded text file.`;
+    try {
+      if (mimeType === "application/pdf") {
+        const pdfParse = await import('pdf-parse');
+        const pdfData = await pdfParse.default(fileBuffer);
+        return pdfData.text;
+      } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        const mammoth = await import('mammoth');
+        const result = await mammoth.extractRawText({ buffer: fileBuffer });
+        return result.value;
+      } else if (mimeType === "text/plain") {
+        return fileBuffer.toString('utf-8');
+      }
+      
+      throw new Error(`Unsupported file type: ${mimeType}`);
+    } catch (error) {
+      console.error(`Error extracting text from ${document.filename}:`, error);
+      throw new Error(`Failed to extract text: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
-    
-    throw new Error(`Unsupported file type: ${mimeType}`);
   }
 
   private chunkText(text: string): Array<{

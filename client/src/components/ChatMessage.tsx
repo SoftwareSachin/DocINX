@@ -33,8 +33,8 @@ export default function ChatMessage({ message }: ChatMessageProps) {
   };
 
   const handleViewSource = (documentId: string) => {
-    // In a real implementation, this would navigate to the document or open a modal
-    console.log("View document:", documentId);
+    // Navigate to document detail page
+    window.location.href = `/documents/${documentId}`;
   };
 
   const formatTime = (dateString: string) => {

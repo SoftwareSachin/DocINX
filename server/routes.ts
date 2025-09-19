@@ -7,6 +7,9 @@ import { documentProcessor } from "./services/documentProcessor";
 import { chatService } from "./services/chatService";
 import { z } from "zod";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { chunks, documents } from "@shared/schema";
+import { eq, and, sql } from "drizzle-orm";
 
 // Configure multer for file uploads
 const upload = multer({
@@ -80,8 +83,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         uploadedDocuments.push(document);
 
-        // Process document asynchronously
-        documentProcessor.processDocument(document.id).catch(error => {
+        // Process document asynchronously with file buffer
+        documentProcessor.processDocument(document.id, file.buffer).catch(error => {
           console.error(`Error processing document ${document.id}:`, error);
         });
       }
@@ -257,12 +260,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const documentStats = await storage.getDocumentStats();
       
-      // Mock additional stats for MVP
+      // Calculate real statistics
+      const chatStats = await storage.getChatStatistics();
+      const activeUserStats = await storage.getActiveUserStatistics();
+      
       const stats = {
         totalDocuments: documentStats.total,
         processing: documentStats.processing,
-        queriesToday: 0, // Would be calculated from chat messages
-        activeUsers: user?.role === 'admin' ? 1 : 0, // Would be calculated from user activity
+        queriesToday: chatStats.todayQueries,
+        activeUsers: activeUserStats.activeUsers,
+        ...((user as any)?.role === 'admin' ? await getAdminStats(documentStats) : {}),
       };
 
       res.json(stats);
@@ -271,6 +278,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });
+
+  // Helper function for admin statistics
+  async function getAdminStats(documentStats: any) {
+    try {
+      // Calculate real statistics from database
+      const embeddingsResult = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(chunks)
+        .then(results => results[0]);
+
+      const storageResult = await db
+        .select({ total: sql<number>`COALESCE(SUM(file_size), 0)` })
+        .from(documents)
+        .then(results => results[0]);
+
+      const avgTimeResult = await db
+        .select({ 
+          avgMinutes: sql<number>`COALESCE(AVG(EXTRACT(EPOCH FROM (processed_at - uploaded_at)) / 60), 0)` 
+        })
+        .from(documents)
+        .where(and(
+          eq(documents.status, 'ready'),
+          sql`processed_at IS NOT NULL`
+        ))
+        .then(results => results[0]);
+
+      // Simple health check - try to query chunks table
+      let vectorDbHealth = 'unknown';
+      try {
+        await db.select({ count: sql<number>`count(*)` }).from(chunks).limit(1);
+        vectorDbHealth = 'healthy';
+      } catch (error) {
+        console.error('Vector DB health check failed:', error);
+        vectorDbHealth = 'unhealthy';
+      }
+
+      const storageUsedGB = Math.round((storageResult?.total || 0) / (1024 * 1024 * 1024) * 100) / 100;
+      const avgTime = Math.round(avgTimeResult?.avgMinutes || 0);
+
+      return {
+        documentsProcessedToday: documentStats.ready,
+        failedProcessing: documentStats.failed,
+        totalEmbeddings: embeddingsResult?.count || 0,
+        avgProcessingTime: `${avgTime} min`,
+        vectorDbHealth,
+        storageUsed: `${storageUsedGB} GB`,
+        storageLimit: '100 GB', // This would be configurable in production
+        avgResponseTime: '0ms', // Would implement real performance monitoring in production
+      };
+    } catch (error) {
+      console.error("Error getting admin stats:", error);
+      return {};
+    }
+  }
 
   // Admin routes
   app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {

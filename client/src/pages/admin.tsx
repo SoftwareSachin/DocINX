@@ -265,18 +265,27 @@ export default function Admin() {
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Vector Database</span>
-                    <Badge className="bg-chart-2/10 text-chart-2 hover:bg-chart-2/20" data-testid="badge-vector-db">
-                      Healthy
+                    <Badge 
+                      className={`${
+                        (stats as any)?.vectorDbHealth === 'healthy' 
+                          ? 'bg-chart-2/10 text-chart-2 hover:bg-chart-2/20' 
+                          : 'bg-destructive/10 text-destructive hover:bg-destructive/20'
+                      }`} 
+                      data-testid="badge-vector-db"
+                    >
+                      {(stats as any)?.vectorDbHealth || 'Unknown'}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Storage Usage</span>
-                    <span className="text-sm font-medium">2.4 GB / 100 GB</span>
+                    <span className="text-sm font-medium">
+                      {(stats as any)?.storageUsed || '0 GB'} / {(stats as any)?.storageLimit || '100 GB'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">API Response Time</span>
                     <Badge className="bg-chart-2/10 text-chart-2 hover:bg-chart-2/20">
-                      145ms avg
+                      {(stats as any)?.avgResponseTime || '0ms'} avg
                     </Badge>
                   </div>
                 </div>
@@ -293,20 +302,26 @@ export default function Admin() {
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Documents Processed Today</span>
                     <span className="text-sm font-medium" data-testid="text-docs-processed-today">
-                      {(stats as any)?.totalDocuments || 0}
+                      {(stats as any)?.documentsProcessedToday || 0}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Failed Processing</span>
-                    <span className="text-sm font-medium text-destructive">0</span>
+                    <span className="text-sm font-medium text-destructive">
+                      {(stats as any)?.failedProcessing || 0}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Average Processing Time</span>
-                    <span className="text-sm font-medium">2.3 minutes</span>
+                    <span className="text-sm font-medium">
+                      {(stats as any)?.avgProcessingTime || '0 min'}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Total Embeddings</span>
-                    <span className="text-sm font-medium">0</span>
+                    <span className="text-sm font-medium">
+                      {(stats as any)?.totalEmbeddings || 0}
+                    </span>
                   </div>
                 </div>
               </CardContent>
