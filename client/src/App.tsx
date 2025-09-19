@@ -13,21 +13,14 @@ import Chat from "@/pages/chat";
 import Admin from "@/pages/admin";
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-
+  // No authentication needed - directly render main app routes
   return (
     <Switch>
-      {isLoading || !isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/documents" component={Documents} />
-          <Route path="/documents/:id" component={DocumentDetail} />
-          <Route path="/chat" component={Chat} />
-          <Route path="/admin" component={Admin} />
-        </>
-      )}
+      <Route path="/" component={Home} />
+      <Route path="/documents" component={Documents} />
+      <Route path="/documents/:id" component={DocumentDetail} />
+      <Route path="/chat" component={Chat} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );
