@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Search, MessageSquare, Shield, CheckCircle, Upload, Bot, Users } from "lucide-react";
 import SEOHead from "@/components/SEOHead";
-import docinxLogo from "@assets/generated_images/Transparent_DocINX_logo_design_a0f58ebd.png";
 
 export default function Landing() {
   const handleLogin = () => {
@@ -24,7 +23,7 @@ export default function Landing() {
           <div className="text-center">
             <div className="flex flex-col items-center gap-4 mb-6">
               <img 
-                src={docinxLogo} 
+                src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png" 
                 alt="DocINX logo" 
                 className="h-16 w-auto object-contain mix-blend-mode-multiply dark:mix-blend-mode-normal dark:brightness-110 dark:contrast-110 transition-all drop-shadow-sm" 
                 data-testid="img-hero-logo"
