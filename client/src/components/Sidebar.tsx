@@ -55,7 +55,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
           <img 
             src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png" 
             alt="DocINX logo" 
-            className="h-8 w-auto shrink-0 object-contain mix-blend-mode-multiply dark:mix-blend-mode-normal dark:brightness-110 dark:contrast-110 transition-all" 
+            className="h-12 w-auto shrink-0 object-contain mix-blend-mode-multiply dark:mix-blend-mode-normal dark:brightness-110 dark:contrast-110 transition-all" 
             data-testid="img-logo"
           />
         </Link>

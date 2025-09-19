@@ -25,7 +25,7 @@ export default function Landing() {
               <img 
                 src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png" 
                 alt="DocINX logo" 
-                className="h-16 w-auto object-contain mix-blend-mode-multiply dark:mix-blend-mode-normal dark:brightness-110 dark:contrast-110 transition-all drop-shadow-sm" 
+                className="h-24 w-auto object-contain mix-blend-mode-multiply dark:mix-blend-mode-normal dark:brightness-110 dark:contrast-110 transition-all drop-shadow-sm" 
                 data-testid="img-hero-logo"
               />
               <Badge variant="secondary" data-testid="badge-hero">
