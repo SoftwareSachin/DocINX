@@ -24,6 +24,13 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
     }
     
     console.log(`Processing document: ${document.filename} (${document.mimeType})`);
+    console.log(`Buffer size: ${buffer.length} bytes`);
+    
+    // Update status to processing
+    await storage.updateDocument(documentId, { 
+      status: 'processing',
+      errorMessage: null 
+    });
     
     switch (document.mimeType) {
       case 'application/pdf':
@@ -31,7 +38,6 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
         try {
           // Use pdf-parse for reliable Node.js PDF text extraction
           const pdfParse = await import("pdf-parse");
-          console.log(`Processing PDF buffer of size: ${buffer.length} bytes`);
           
           const pdfData = await pdfParse.default(buffer, {
             max: 0, // Parse all pages
@@ -76,6 +82,52 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
     // Trim text if too long (keep first 10000 characters)
     if (extractedText.length > 10000) {
       extractedText = extractedText.substring(0, 10000) + '\n\n[Text truncated - showing first 10,000 characters]';
+    }
+    
+    // Generate embeddings using our multi-AI service
+    console.log('Generating embeddings for document chunks...');
+    try {
+      const { multiAIService } = await import('./services/multiAIService');
+      
+      // Simple chunking for embedding generation
+      const chunkSize = 500;
+      const chunks = [];
+      for (let i = 0; i < extractedText.length; i += chunkSize) {
+        const chunk = extractedText.slice(i, i + chunkSize);
+        if (chunk.trim()) {
+          chunks.push({
+            content: chunk.trim(),
+            charStart: i,
+            charEnd: Math.min(i + chunkSize, extractedText.length)
+          });
+        }
+      }
+      
+      console.log(`Creating ${chunks.length} chunks for embedding`);
+      
+      // Generate embeddings for chunks
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        try {
+          const embedding = await multiAIService.generateEmbeddings(chunk.content);
+          
+          await storage.createChunk({
+            documentId,
+            chunkIndex: i,
+            content: chunk.content,
+            charStart: chunk.charStart,
+            charEnd: chunk.charEnd,
+            embedding,
+          });
+          
+          console.log(`Created chunk ${i + 1}/${chunks.length}`);
+        } catch (embeddingError) {
+          console.warn(`Failed to generate embedding for chunk ${i}:`, embeddingError);
+          // Continue with other chunks even if one fails
+        }
+      }
+    } catch (embeddingError) {
+      console.warn('Embedding generation failed, but continuing with text extraction:', embeddingError);
     }
     
     await storage.updateDocument(documentId, { 
