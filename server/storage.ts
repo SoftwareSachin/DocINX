@@ -79,8 +79,27 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  // Helper method to ensure anonymous user exists
+  private async ensureAnonymousUser(userId: string): Promise<void> {
+    if (userId === 'anonymous-user') {
+      const existingUser = await this.getUser(userId);
+      if (!existingUser) {
+        await this.upsertUser({
+          id: 'anonymous-user',
+          email: 'anonymous@example.com',
+          firstName: 'Anonymous',
+          lastName: 'User',
+          role: 'user'
+        });
+      }
+    }
+  }
+
   // Document operations
   async createDocument(document: InsertDocument): Promise<Document> {
+    // Ensure anonymous user exists before creating document
+    await this.ensureAnonymousUser(document.uploaderId);
+    
     const [created] = await db.insert(documents).values(document).returning();
     return created;
   }
@@ -212,6 +231,9 @@ export class DatabaseStorage implements IStorage {
 
   // Chat operations
   async createChatSession(session: InsertChatSession): Promise<ChatSession> {
+    // Ensure anonymous user exists before creating chat session
+    await this.ensureAnonymousUser(session.userId);
+    
     const [created] = await db.insert(chatSessions).values(session).returning();
     return created;
   }
