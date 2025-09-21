@@ -12,11 +12,8 @@ project_root = "/home/runner/workspace"
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-try:
-    import uvicorn
-except ImportError:
-    print("Error: uvicorn not found. Make sure Python dependencies are installed.")
-    sys.exit(1)
+# Import uvicorn from the virtual environment
+import uvicorn  # type: ignore
 
 if __name__ == "__main__":
     # Ensure we're in the correct directory

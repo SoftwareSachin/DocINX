@@ -14,11 +14,21 @@ const PYTHON_AI_SERVICE_URL = process.env.PYTHON_AI_SERVICE_URL || 'http://local
 // Helper functions for document processing
 async function processDocumentAsync(documentId: string, buffer: Buffer): Promise<void> {
   try {
-    // Simple document processing - extract text and mark as ready
-    const text = buffer.toString('utf8').substring(0, 1000); // Simple text extraction
+    // Get document to check file type
+    const document = await storage.getDocument(documentId);
+    let extractedText = '';
+    
+    if (document?.mimeType === 'text/plain') {
+      // Only try to read as text for plain text files
+      extractedText = buffer.toString('utf8').substring(0, 1000);
+    } else {
+      // For PDF, DOCX, and other files, mark as ready but note that text extraction needs proper processing
+      extractedText = `[${document?.mimeType || 'Unknown'} file - ${document?.filename || 'document'} uploaded successfully. Text extraction requires specialized processing.]`;
+    }
+    
     await storage.updateDocument(documentId, { 
       status: 'ready', 
-      extractedText: text,
+      extractedText,
       errorMessage: null 
     });
   } catch (error) {

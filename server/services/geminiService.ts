@@ -6,7 +6,8 @@ import { GoogleGenAI } from "@google/genai";
 //   - do not change this unless explicitly requested by the user
 
 // This API key is from Gemini Developer API Key, not vertex AI API Key
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+// Using GOOGLE_AI_API_KEY from Replit secrets for secure API key management
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY });
 
 export async function generateChatResponse(query: string, documentContext?: string): Promise<string> {
     try {
