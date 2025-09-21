@@ -15,41 +15,14 @@ export default function Admin() {
   const { toast } = useToast();
   const { user, isAuthenticated, isLoading } = useAuth();
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-  }, [isAuthenticated, isLoading, toast]);
-
-  // Redirect if not admin
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && (user as any)?.role !== "admin") {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access this page.",
-        variant: "destructive",
-      });
-      window.location.href = "/";
-    }
-  }, [user, isAuthenticated, isLoading, toast]);
+  // No authentication required - allow all users to access admin page
 
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ["/api/admin/users"],
-    enabled: isAuthenticated && (user as any)?.role === "admin",
   });
 
   const { data: stats } = useQuery({
     queryKey: ["/api/stats/dashboard"],
-    enabled: isAuthenticated && (user as any)?.role === "admin",
   });
 
   const updateRoleMutation = useMutation({
@@ -118,9 +91,7 @@ export default function Admin() {
     );
   }
 
-  if (!isAuthenticated || (user as any)?.role !== "admin") {
-    return null; // Will redirect
-  }
+  // Allow access to all users
 
   return (
     <div className="flex h-screen bg-background">
