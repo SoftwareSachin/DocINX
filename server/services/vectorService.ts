@@ -1,21 +1,7 @@
-import OpenAI from "openai";
-
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
-});
+import { multiAIService } from "./multiAIService";
 
 export async function generateEmbeddings(text: string): Promise<number[]> {
-  try {
-    const response = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: text,
-    });
-
-    return response.data[0].embedding;
-  } catch (error) {
-    console.error("Error generating embeddings:", error);
-    throw new Error("Failed to generate embeddings");
-  }
+  return await multiAIService.generateEmbeddings(text);
 }
 
 export function cosineSimilarity(a: number[], b: number[]): number {

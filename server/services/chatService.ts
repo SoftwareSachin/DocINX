@@ -1,11 +1,6 @@
-import OpenAI from "openai";
 import { storage } from "../storage";
-import { generateEmbeddings } from "../openai";
 import { searchSimilarChunks } from "./vectorService";
-
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
-});
+import { multiAIService, AIResponse } from "./multiAIService";
 
 export interface ChatResponse {
   answer: string;
@@ -89,12 +84,12 @@ export class ChatService {
       // Search for relevant chunks
       const relevantChunks = await searchSimilarChunks(query, allChunks, 5);
 
-      // Generate response using RAG with document titles
+      // Generate response using multi-AI RAG with document titles
       const chunksWithTitles = relevantChunks.map(chunk => ({
         ...chunk,
         documentTitle: allChunks.find(c => c.id === chunk.id)?.documentTitle || "Unknown Document"
       }));
-      const response = await this.generateRAGResponse(query, chunksWithTitles);
+      const response = await this.generateMultiAIRAGResponse(query, chunksWithTitles);
 
       // Store assistant message
       await storage.createChatMessage({
@@ -121,7 +116,7 @@ export class ChatService {
     }
   }
 
-  private async generateRAGResponse(
+  private async generateMultiAIRAGResponse(
     query: string,
     chunks: Array<{
       id: string;
@@ -135,39 +130,12 @@ export class ChatService {
       .map((chunk, index) => `[${index + 1}] ${chunk.content}`)
       .join("\n\n");
 
-    const prompt = `You are a helpful assistant that answers questions based on the provided document context. Use only the information from the context to answer the question. If the context doesn't contain enough information to answer the question, say so clearly.
-
-Context from documents:
-${context}
-
-Question: ${query}
-
-Instructions:
-1. Answer the question based only on the provided context
-2. Be concise and accurate
-3. If you reference specific information, indicate which source number [1], [2], etc.
-4. If the context doesn't contain relevant information, clearly state that
-
-Answer:`;
-
     try {
-      // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-      const completion = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful assistant that provides accurate answers based on document context with proper source attribution."
-          },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        max_completion_tokens: 1000,
-      });
-
-      const answer = completion.choices[0].message.content || "I couldn't generate a response.";
+      // Determine query complexity for optimal AI routing
+      const complexity = this.determineQueryComplexity(query);
+      
+      // Use multi-AI service for maximum power
+      const aiResponse = await multiAIService.generateChatResponse(query, context, complexity);
 
       const sources = chunks.map(chunk => ({
         documentId: chunk.documentId,
@@ -177,11 +145,33 @@ Answer:`;
         confidence: Math.round(chunk.similarity * 100),
       }));
 
-      return { answer, sources };
+      return { 
+        answer: `${aiResponse.content}\n\n*Powered by ${aiResponse.platform.toUpperCase()} ${aiResponse.model}*`, 
+        sources 
+      };
     } catch (error) {
-      console.error("Error generating RAG response:", error);
-      throw new Error("Failed to generate response");
+      console.error("Error generating multi-AI RAG response:", error);
+      
+      // Fallback to basic response
+      const fallbackAnswer = "I encountered an error while processing your question with our AI systems. Please try again.";
+      return { answer: fallbackAnswer, sources: [] };
     }
+  }
+
+  // Determine optimal AI platform based on query characteristics
+  private determineQueryComplexity(query: string): 'simple' | 'complex' | 'factual' {
+    const complexKeywords = ['analyze', 'explain', 'compare', 'evaluate', 'assess', 'interpret', 'reasoning', 'why', 'how does'];
+    const factualKeywords = ['what is', 'who is', 'when did', 'where is', 'define', 'definition'];
+    
+    const queryLower = query.toLowerCase();
+    
+    if (complexKeywords.some(keyword => queryLower.includes(keyword))) {
+      return 'complex';
+    } else if (factualKeywords.some(keyword => queryLower.includes(keyword))) {
+      return 'factual';
+    }
+    
+    return 'simple';
   }
 }
 

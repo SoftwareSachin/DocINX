@@ -1,5 +1,5 @@
 import { storage } from "../storage";
-import { generateEmbeddings } from "../openai";
+import { multiAIService } from "./multiAIService";
 import { randomUUID } from "crypto";
 
 export interface ProcessingResult {
@@ -40,7 +40,7 @@ export class DocumentProcessor {
       let chunksCreated = 0;
       for (let i = 0; i < chunks.length; i++) {
         const chunk = chunks[i];
-        const embedding = await generateEmbeddings(chunk.content);
+        const embedding = await multiAIService.generateEmbeddings(chunk.content);
         
         await storage.createChunk({
           documentId,
