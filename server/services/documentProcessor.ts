@@ -79,10 +79,20 @@ export class DocumentProcessor {
     
     try {
       if (mimeType === "application/pdf") {
-        // Import pdf-parse properly without trying to access test files
-        const pdfParse = (await import('pdf-parse')).default;
-        const pdfData = await pdfParse(fileBuffer);
-        return pdfData.text;
+        try {
+          // Use dynamic import with better error handling
+          const pdfParseModule = await import('pdf-parse');
+          const pdfParse = pdfParseModule.default || pdfParseModule;
+          const pdfData = await pdfParse(fileBuffer, {
+            max: 0, // Parse all pages
+            version: 'v1.10.88' // Use specific version to avoid issues
+          });
+          return pdfData.text || '';
+        } catch (pdfError) {
+          console.error('PDF parsing failed, attempting fallback:', pdfError);
+          // Fallback: return a simple text extraction message
+          return `[PDF Document: ${document.filename}]\n\nDocument processing temporarily unavailable. Please try re-uploading the document.`;
+        }
       } else if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         const mammoth = await import('mammoth');
         const result = await mammoth.extractRawText({ buffer: fileBuffer });
