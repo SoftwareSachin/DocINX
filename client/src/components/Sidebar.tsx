@@ -63,11 +63,11 @@ export default function Sidebar({ currentPage }: SidebarProps) {
           {isCollapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
         </Button>
         {!isCollapsed && (
-          <Link href="/" data-testid="link-home" className="block flex-1 h-full px-4 py-2">
+          <Link href="/" data-testid="link-home" className="block flex-1 h-full px-2 py-1">
             <img 
               src="/assets/generated_images/Cropped_DocINX_logo_minimal_padding_de18594c.png?v=2" 
               alt="DocINX logo" 
-              className="block w-full h-full object-contain dark:brightness-110 dark:contrast-110 transition-all hover:scale-105" 
+              className="block w-full h-full object-cover dark:brightness-110 dark:contrast-110 transition-all hover:scale-105" 
               data-testid="img-logo"
             />
           </Link>
