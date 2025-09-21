@@ -42,14 +42,30 @@ async function reprocessDocumentAsync(documentId: string): Promise<void> {
   }
 }
 
-// Simple chat service without Python dependencies
+// Import Gemini AI service
+import { generateChatResponse } from "./services/geminiService";
 
 async function processChatQuery(sessionId: string, query: string, userId: string): Promise<any> {
   try {
-    // Simple chat response without AI integration
+    // Get all documents for context (simple RAG implementation)
+    const documents = await storage.getAllDocuments();
+    let documentContext = '';
+    
+    // Combine extracted text from all ready documents
+    if (documents && documents.length > 0) {
+      const readyDocs = documents.filter(doc => doc.status === 'ready' && doc.extractedText);
+      documentContext = readyDocs.map(doc => `[${doc.title}]\n${doc.extractedText}`).join('\n\n');
+    }
+    
+    // Generate AI response using Gemini
+    const aiAnswer = await generateChatResponse(query, documentContext);
+    
     const response = {
-      answer: `I received your query: "${query}". This is a simple response without AI integration.`,
-      sources: []
+      answer: aiAnswer,
+      sources: documents.filter(doc => doc.status === 'ready').map(doc => ({
+        title: doc.title,
+        id: doc.id
+      }))
     };
     
     // Save the message to database
