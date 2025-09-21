@@ -56,15 +56,13 @@ async function processChatQuery(sessionId: string, query: string, userId: string
     await storage.createChatMessage({
       sessionId,
       role: 'user',
-      content: query,
-      createdAt: new Date()
+      content: query
     });
     
     await storage.createChatMessage({
       sessionId,
       role: 'assistant', 
-      content: response.answer,
-      createdAt: new Date()
+      content: response.answer
     });
     
     return response;
