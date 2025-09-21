@@ -9,7 +9,8 @@ import { z } from "zod";
 // Configuration for Python AI service
 const PYTHON_AI_SERVICE_URL = process.env.PYTHON_AI_SERVICE_URL || 'http://localhost:8000';
 
-// Simple document processing without Python dependencies
+// Document processing with proper text extraction
+// Note: Using dynamic imports to avoid initialization issues
 
 // Helper functions for document processing
 async function processDocumentAsync(documentId: string, buffer: Buffer): Promise<void> {
@@ -18,24 +19,66 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
     const document = await storage.getDocument(documentId);
     let extractedText = '';
     
-    if (document?.mimeType === 'text/plain') {
-      // Only try to read as text for plain text files
-      extractedText = buffer.toString('utf8').substring(0, 1000);
-    } else {
-      // For PDF, DOCX, and other files, mark as ready but note that text extraction needs proper processing
-      extractedText = `[${document?.mimeType || 'Unknown'} file - ${document?.filename || 'document'} uploaded successfully. Text extraction requires specialized processing.]`;
+    if (!document) {
+      throw new Error('Document not found');
+    }
+    
+    console.log(`Processing document: ${document.filename} (${document.mimeType})`);
+    
+    switch (document.mimeType) {
+      case 'application/pdf':
+        console.log('Extracting text from PDF...');
+        try {
+          const pdf = (await import("pdf-parse")).default;
+          const pdfData = await pdf(buffer);
+          extractedText = pdfData.text;
+          console.log(`Extracted ${extractedText.length} characters from PDF`);
+        } catch (pdfError) {
+          console.error('PDF parsing error:', pdfError);
+          throw new Error(`Failed to parse PDF: ${pdfError instanceof Error ? pdfError.message : 'Unknown error'}`);
+        }
+        break;
+        
+      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        console.log('Extracting text from DOCX...');
+        try {
+          const mammoth = await import("mammoth");
+          const docxResult = await mammoth.extractRawText({ buffer });
+          extractedText = docxResult.value;
+          console.log(`Extracted ${extractedText.length} characters from DOCX`);
+        } catch (docxError) {
+          console.error('DOCX parsing error:', docxError);
+          throw new Error(`Failed to parse DOCX: ${docxError instanceof Error ? docxError.message : 'Unknown error'}`);
+        }
+        break;
+        
+      case 'text/plain':
+        console.log('Processing plain text file...');
+        extractedText = buffer.toString('utf8');
+        break;
+        
+      default:
+        throw new Error(`Unsupported file type: ${document.mimeType}`);
+    }
+    
+    // Trim text if too long (keep first 10000 characters)
+    if (extractedText.length > 10000) {
+      extractedText = extractedText.substring(0, 10000) + '\n\n[Text truncated - showing first 10,000 characters]';
     }
     
     await storage.updateDocument(documentId, { 
       status: 'ready', 
-      extractedText,
+      extractedText: extractedText.trim(),
       errorMessage: null 
     });
+    
+    console.log(`Document ${documentId} processed successfully. Text length: ${extractedText.length}`);
+    
   } catch (error) {
     console.error('Failed to process document:', error);
     await storage.updateDocument(documentId, { 
       status: 'failed', 
-      errorMessage: 'Document processing failed' 
+      errorMessage: error instanceof Error ? error.message : 'Document processing failed' 
     });
   }
 }
