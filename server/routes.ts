@@ -86,12 +86,27 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
 async function reprocessDocumentAsync(documentId: string): Promise<void> {
   try {
     await storage.updateDocument(documentId, { status: 'processing' });
-    // For now, just mark as ready without actual reprocessing
+    
+    // Note: For reprocessing, we don't have the original buffer, so this is a placeholder
+    // In a real implementation, you'd either:
+    // 1. Store the original file in cloud storage (S3, etc.) and re-download it
+    // 2. Call the Python AI service to reprocess from stored file
+    // 3. Keep the original buffer in memory/cache temporarily
+    
+    console.log('Reprocessing document - marking as ready (file content not available for re-extraction)');
+    
     setTimeout(async () => {
-      await storage.updateDocument(documentId, { status: 'ready' });
+      await storage.updateDocument(documentId, { 
+        status: 'ready',
+        errorMessage: 'Reprocessing completed - original file content not available for re-extraction. Please re-upload for full text extraction.' 
+      });
     }, 1000);
   } catch (error) {
     console.error('Failed to reprocess document:', error);
+    await storage.updateDocument(documentId, { 
+      status: 'failed', 
+      errorMessage: 'Reprocessing failed' 
+    });
   }
 }
 
