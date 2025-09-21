@@ -29,30 +29,16 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
       case 'application/pdf':
         console.log('Extracting text from PDF...');
         try {
-          // Use pdfjs-dist for reliable PDF text extraction
-          const pdfjs = await import("pdfjs-dist");
+          // Use pdf-parse for reliable Node.js PDF text extraction
+          const pdfParse = await import("pdf-parse");
           console.log(`Processing PDF buffer of size: ${buffer.length} bytes`);
           
-          const loadingTask = pdfjs.getDocument({
-            data: new Uint8Array(buffer)
+          const pdfData = await pdfParse.default(buffer, {
+            max: 0, // Parse all pages
           });
           
-          const pdf = await loadingTask.promise;
-          console.log(`PDF loaded successfully, ${pdf.numPages} pages`);
-          
-          extractedText = '';
-          
-          // Extract text from all pages
-          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            const page = await pdf.getPage(pageNum);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items
-              .map((item: any) => item.str)
-              .join(' ');
-            extractedText += pageText + '\n';
-          }
-          
-          extractedText = extractedText.trim();
+          extractedText = pdfData.text || '';
+          console.log(`PDF loaded successfully, ${pdfData.numpages} pages`);
           console.log(`Extracted ${extractedText.length} characters from PDF`);
           
           if (extractedText.length === 0) {
