@@ -29,10 +29,16 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
       case 'application/pdf':
         console.log('Extracting text from PDF...');
         try {
-          const pdf = (await import("pdf-parse")).default;
+          const pdfParse = await import("pdf-parse");
+          const pdf = pdfParse.default || pdfParse;
+          console.log(`Processing PDF buffer of size: ${buffer.length} bytes`);
           const pdfData = await pdf(buffer);
-          extractedText = pdfData.text;
+          extractedText = pdfData.text || '';
           console.log(`Extracted ${extractedText.length} characters from PDF`);
+          if (extractedText.length === 0) {
+            console.warn('PDF text extraction returned empty result');
+            extractedText = 'PDF processed but no text content was extracted. This may be a scanned PDF or contain only images.';
+          }
         } catch (pdfError) {
           console.error('PDF parsing error:', pdfError);
           throw new Error(`Failed to parse PDF: ${pdfError instanceof Error ? pdfError.message : 'Unknown error'}`);
