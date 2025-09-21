@@ -119,15 +119,13 @@ async function processChatQuery(sessionId: string, query: string, userId: string
     const documents = await storage.getAllDocuments();
     let documentContext = '';
     
-    console.log('DEBUG: Total documents found:', documents?.length || 0);
-    
     // Combine extracted text from all ready documents
     if (documents && documents.length > 0) {
       const readyDocs = documents.filter(doc => doc.status === 'ready' && doc.extractedText);
-      console.log('DEBUG: Ready documents with extracted text:', readyDocs.length);
-      readyDocs.forEach(doc => console.log(`DEBUG: Document ${doc.title} - status: ${doc.status}, has text: ${!!doc.extractedText}`));
+      if (readyDocs.length === 0) {
+        console.log('No documents with extracted text found. User needs to re-upload documents for proper processing.');
+      }
       documentContext = readyDocs.map(doc => `[${doc.title}]\n${doc.extractedText}`).join('\n\n');
-      console.log('DEBUG: Document context length:', documentContext.length);
     }
     
     // Generate AI response using Gemini
@@ -230,7 +228,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         uploadedDocuments.push(document);
 
-        // Process document asynchronously via Python AI service
+        // Process document asynchronously
         processDocumentAsync(document.id, file.buffer).catch(error => {
           console.error(`Error processing document ${document.id}:`, error);
         });

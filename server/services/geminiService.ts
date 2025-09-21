@@ -23,6 +23,9 @@ ${documentContext}
 User Question: ${query}
 
 Please provide a helpful and accurate response based on the document content above.`;
+        } else {
+            // No document context available
+            return "I don't have any document content to search through. Please upload and process some documents first, then ask your question again.";
         }
 
         const response = await ai.models.generateContent({
