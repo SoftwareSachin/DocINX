@@ -24,7 +24,7 @@ export default function Landing() {
             <div className="flex flex-col items-center gap-6 mb-8">
               <div className="h-40 w-96 overflow-hidden flex items-center justify-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl border border-blue-100 dark:border-blue-800/30 shadow-lg">
                 <img 
-                  src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png" 
+                  src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png?v=2" 
                   alt="DocINX logo" 
                   className="h-full w-auto max-w-full object-contain dark:brightness-110 dark:contrast-110 transition-all hover:scale-105 duration-300" 
                   data-testid="img-hero-logo"
