@@ -29,12 +29,32 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
       case 'application/pdf':
         console.log('Extracting text from PDF...');
         try {
-          const pdfParse = await import("pdf-parse");
-          const pdf = pdfParse.default || pdfParse;
+          // Use pdfjs-dist for reliable PDF text extraction
+          const pdfjs = await import("pdfjs-dist");
           console.log(`Processing PDF buffer of size: ${buffer.length} bytes`);
-          const pdfData = await pdf(buffer);
-          extractedText = pdfData.text || '';
+          
+          const loadingTask = pdfjs.getDocument({
+            data: new Uint8Array(buffer)
+          });
+          
+          const pdf = await loadingTask.promise;
+          console.log(`PDF loaded successfully, ${pdf.numPages} pages`);
+          
+          extractedText = '';
+          
+          // Extract text from all pages
+          for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(' ');
+            extractedText += pageText + '\n';
+          }
+          
+          extractedText = extractedText.trim();
           console.log(`Extracted ${extractedText.length} characters from PDF`);
+          
           if (extractedText.length === 0) {
             console.warn('PDF text extraction returned empty result');
             extractedText = 'PDF processed but no text content was extracted. This may be a scanned PDF or contain only images.';
