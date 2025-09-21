@@ -131,7 +131,7 @@ const upload = multer({
 
 const querySchema = z.object({
   query: z.string().min(1),
-  sessionId: z.string().optional(),
+  sessionId: z.string().nullable().optional(),
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
