@@ -16,7 +16,7 @@ document_service = DocumentService()
 
 def get_user_id() -> str:
     """Simple user ID for demo mode - no authentication barriers"""
-    return "demo-user"
+    return "anonymous-user"
 
 
 @router.post("/documents/upload", response_model=DocumentUploadResponse)

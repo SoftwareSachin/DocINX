@@ -20,7 +20,7 @@ chat_service = EnhancedChatService()
 
 def get_user_id() -> str:
     """Simple user ID for demo mode - no authentication required"""
-    return "demo-user"
+    return "anonymous-user"
 
 
 @router.post("/chat/query", response_model=ChatQueryResponse)
