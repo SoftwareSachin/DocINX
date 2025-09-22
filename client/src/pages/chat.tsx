@@ -5,10 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import Sidebar from "@/components/Sidebar";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User, ExternalLink } from "lucide-react";
+import { Send, Bot, User, ExternalLink, ArrowLeft, MessageSquare } from "lucide-react";
 import ChatMessage from "@/components/ChatMessage";
 import SEOHead from "@/components/SEOHead";
 
@@ -154,35 +153,56 @@ export default function Chat() {
       
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4" data-testid="header-chat">
+        <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 shadow-sm" data-testid="header-chat">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold" data-testid="text-page-title">Knowledge Chat</h2>
-              <p className="text-sm text-muted-foreground">Ask questions about your documents</p>
+            <div className="flex items-center space-x-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 p-2"
+                onClick={() => window.location.href = '/documents'}
+                data-testid="button-back"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                  <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100" data-testid="text-page-title">Knowledge Chat</h1>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Ask questions about your documents</p>
+                </div>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-hidden p-6" data-testid="main-chat">
-          <Card className="h-full border-border flex flex-col">
+        <main className="flex-1 overflow-hidden bg-gray-50 dark:bg-gray-900 p-6" data-testid="main-chat">
+          <div className="bg-white dark:bg-gray-800 h-full rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col">
             {/* Chat Messages */}
-            <div className="flex-1 overflow-auto p-6 space-y-6" data-testid="chat-messages">
+            <div className="flex-1 overflow-auto p-6 space-y-4" data-testid="chat-messages">
               {messagesLoading ? (
                 <div className="text-center py-8">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                   <p className="text-muted-foreground">Loading messages...</p>
                 </div>
               ) : messages.length === 0 ? (
-                <div className="text-center py-12">
-                  <Bot className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
-                  <p className="text-muted-foreground mb-4">
+                <div className="text-center py-16">
+                  <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <MessageSquare className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">Start a conversation</h3>
+                  <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
                     Ask questions about your uploaded documents and get AI-powered answers with source citations.
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    Example: "What are the key findings in the quarterly report?"
-                  </p>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 max-w-sm mx-auto">
+                    <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-1">Example questions:</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      "What are the key findings in the quarterly report?"
+                    </p>
+                  </div>
                 </div>
               ) : (
                 messages.map((message) => (
@@ -194,15 +214,15 @@ export default function Chat() {
               {sendMessageMutation.isPending && (
                 <div className="chat-message">
                   <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-chart-2 rounded-full flex items-center justify-center text-white">
-                      <Bot className="h-4 w-4" />
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                      <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="flex-1">
-                      <div className="bg-accent rounded-lg p-4">
+                      <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"></div>
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse animation-delay-100"></div>
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse animation-delay-200"></div>
+                          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-pulse" style={{animationDelay: '100ms'}}></div>
+                          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-pulse" style={{animationDelay: '200ms'}}></div>
                         </div>
                       </div>
                     </div>
@@ -212,7 +232,7 @@ export default function Chat() {
             </div>
             
             {/* Chat Input */}
-            <div className="p-6 border-t border-border">
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
               <div className="flex items-center space-x-4">
                 <div className="flex-1 relative">
                   <Input
@@ -222,25 +242,25 @@ export default function Chat() {
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyPress={handleKeyPress}
                     disabled={sendMessageMutation.isPending}
-                    className="pr-12"
+                    className="pr-12 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-gray-100 dark:placeholder-gray-400"
                     data-testid="input-chat-message"
                   />
                   <Button
                     size="sm"
                     onClick={handleSendMessage}
                     disabled={!inputValue.trim() || sendMessageMutation.isPending}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700"
                     data-testid="button-send-message"
                   >
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
                 Answers are generated from your uploaded documents with source attribution
               </p>
             </div>
-          </Card>
+          </div>
         </main>
       </div>
     </div>
