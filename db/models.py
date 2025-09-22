@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, Text, DateTime, Boolean, ForeignKey, ARRAY, Float, Index
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
@@ -96,7 +96,7 @@ class ChatMessage(Base):
     session_id = Column(String, ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False, name="session_id")
     role = Column(String, nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
-    sources = Column(Text)  # JSON stored as text
+    sources = Column(JSONB)  # JSON stored as JSONB
     created_at = Column(DateTime, name="created_at", default=func.now())
     
     # Relationships

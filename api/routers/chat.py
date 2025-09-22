@@ -49,8 +49,7 @@ async def process_chat_query(
             return ChatQueryResponse(
                 answer=response["response"],
                 sources=response.get("sources", []),
-                session_id=session_id,
-                metadata=response.get("metadata", {})
+                session_id=session_id
             )
         else:
             # Enhanced error handling with graceful degradation
@@ -58,8 +57,7 @@ async def process_chat_query(
             return ChatQueryResponse(
                 answer=error_response,
                 sources=[],
-                session_id=session_id,
-                metadata={"error": True, "provider_used": "error_handler"}
+                session_id=session_id
             )
         
     except Exception as e:
@@ -68,8 +66,7 @@ async def process_chat_query(
         return ChatQueryResponse(
             answer="I'm experiencing technical difficulties. Please try again in a moment, or try rephrasing your question.",
             sources=[],
-            session_id=session_id or str(uuid.uuid4()),
-            metadata={"error": True, "exception": str(e)}
+            session_id=session_id or str(uuid.uuid4())
         )
 
 
@@ -84,10 +81,9 @@ async def get_chat_sessions(db: AsyncSession = Depends(get_db)):
         session_responses = []
         for session in sessions:
             session_responses.append(ChatSessionResponse(
-                session_id=session["session_id"],
-                created_at=session["created_at"],
-                latest_message=session.get("latest_message", ""),
-                message_count=session.get("message_count", 0)
+                id=session["session_id"],
+                user_id=user_id,
+                created_at=session["created_at"]
             ))
         
         return session_responses
@@ -112,7 +108,8 @@ async def get_chat_messages(session_id: str, db: AsyncSession = Depends(get_db))
         message_responses = []
         for msg in messages:
             message_responses.append(ChatMessageResponse(
-                message_id=msg["message_id"],
+                id=msg["message_id"],
+                session_id=session_id,
                 role=msg["role"],
                 content=msg["content"],
                 sources=msg.get("sources", []),

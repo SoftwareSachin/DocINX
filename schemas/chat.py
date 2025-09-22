@@ -24,7 +24,7 @@ class ChatMessageCreate(BaseModel):
     session_id: str
     role: str
     content: str
-    sources: Optional[str] = None
+    sources: Optional[List[Any]] = None
 
 
 class ChatMessageResponse(BaseModel):
@@ -32,7 +32,7 @@ class ChatMessageResponse(BaseModel):
     session_id: str
     role: str
     content: str
-    sources: Optional[str] = None
+    sources: Optional[List[Any]] = None
     created_at: datetime
     
     class Config:
