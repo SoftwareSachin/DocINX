@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Home, FileText, MessageSquare, Settings, LogOut, Menu, X } from "lucide-react";
+import { Home, FileText, MessageSquare, Settings, LogOut, Menu, X, Search, Database, Users, Bot } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 
@@ -14,9 +14,14 @@ export default function Sidebar({ currentPage }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const navigation = [
-    { name: "Dashboard", path: "/", icon: Home, key: "dashboard" },
-    { name: "Documents", path: "/documents", icon: FileText, key: "documents" },
-    { name: "Knowledge Chat", path: "/chat", icon: MessageSquare, key: "chat" },
+    { name: "Files", path: "/documents", icon: FileText, key: "documents" },
+    { name: "Datasets", path: "/datasets", icon: Database, key: "datasets" },
+    { name: "Search", path: "/search", icon: Search, key: "search" },
+    { name: "MCP", path: "/mcp", icon: Settings, key: "mcp" },
+    { name: "Tools", path: "/tools", icon: Settings, key: "tools" },
+    { name: "Agents", path: "/agents", icon: Bot, key: "agents" },
+    { name: "Chats", path: "/chat", icon: MessageSquare, key: "chat" },
+    { name: "Users", path: "/users", icon: Users, key: "users" },
   ];
 
   // Add admin page if user is admin
@@ -51,31 +56,29 @@ export default function Sidebar({ currentPage }: SidebarProps) {
   };
 
   return (
-    <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-card border-r border-border flex flex-col transition-all duration-300`} data-testid="sidebar">
-      <div className={`shrink-0 border-b border-border bg-white/95 dark:bg-black/95 backdrop-blur-sm p-0 h-20 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} overflow-hidden`}>
+    <div className={`${isCollapsed ? 'w-16' : 'w-64'} bg-white border-r border-gray-200 flex flex-col transition-all duration-300`} data-testid="sidebar">
+      <div className={`shrink-0 border-b border-gray-200 bg-white p-0 h-16 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-4'} overflow-hidden`}>
+        {!isCollapsed && (
+          <Link href="/" data-testid="link-home" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+              <span className="text-white font-bold text-sm">D</span>
+            </div>
+            <span className="font-semibold text-gray-900">DocINX</span>
+          </Link>
+        )}
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex-shrink-0 p-2 ml-2 hover:bg-accent"
+          className="flex-shrink-0 p-1 hover:bg-gray-100 h-8 w-8"
           data-testid="button-hamburger"
         >
-          {isCollapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
+          {isCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
         </Button>
-        {!isCollapsed && (
-          <Link href="/" data-testid="link-home" className="block flex-1 h-full px-2 py-1">
-            <img 
-              src="/assets/generated_images/Cropped_DocINX_logo_minimal_padding_de18594c.png?v=2" 
-              alt="DocINX logo" 
-              className="block w-full h-full object-cover dark:brightness-110 dark:contrast-110 transition-all hover:scale-105" 
-              data-testid="img-logo"
-            />
-          </Link>
-        )}
       </div>
       
-      <nav className={`flex-1 ${isCollapsed ? 'px-2 py-3' : 'p-4'} pt-3`}>
-        <ul className="space-y-2">
+      <nav className={`flex-1 ${isCollapsed ? 'px-2 py-4' : 'px-3 py-4'} pt-2`}>
+        <ul className="space-y-1">
           {navigation.map((item) => {
             const isActive = currentPage === item.key;
             const Icon = item.icon;
@@ -85,15 +88,15 @@ export default function Sidebar({ currentPage }: SidebarProps) {
                 <Link href={item.path}>
                   <Button
                     variant="ghost"
-                    className={`w-full ${isCollapsed ? 'justify-center px-0 h-10' : 'justify-start'} ${
+                    className={`w-full ${isCollapsed ? 'justify-center px-0 h-9' : 'justify-start px-3 h-9'} text-sm font-medium ${
                       isActive 
-                        ? "bg-accent text-accent-foreground font-medium" 
-                        : "hover:bg-accent hover:text-accent-foreground"
+                        ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600" 
+                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                     }`}
                     data-testid={`nav-${item.key}`}
                     title={isCollapsed ? item.name : undefined}
                   >
-                    <Icon className={`h-4 w-4 ${!isCollapsed ? 'mr-3' : ''}`} />
+                    <Icon className={`h-4 w-4 ${!isCollapsed ? 'mr-3' : ''} ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
                     {!isCollapsed && item.name}
                   </Button>
                 </Link>
@@ -103,10 +106,10 @@ export default function Sidebar({ currentPage }: SidebarProps) {
         </ul>
       </nav>
       
-      <div className={`${isCollapsed ? 'p-2' : 'p-4'} border-t border-border`}>
+      <div className={`${isCollapsed ? 'p-2' : 'p-3'} border-t border-gray-200 bg-gray-50`}>
         {isCollapsed ? (
           <div className="flex flex-col items-center space-y-3">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
               <span className="text-sm font-medium" data-testid="text-user-initials">
                 {getUserInitials()}
               </span>
@@ -115,7 +118,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="text-muted-foreground hover:text-foreground p-2 w-8 h-8 flex items-center justify-center"
+              className="text-gray-500 hover:text-gray-700 p-2 w-8 h-8 flex items-center justify-center"
               data-testid="button-logout"
               title="Logout"
             >
@@ -124,16 +127,16 @@ export default function Sidebar({ currentPage }: SidebarProps) {
           </div>
         ) : (
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
               <span className="text-sm font-medium" data-testid="text-user-initials">
                 {getUserInitials()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate" data-testid="text-user-name">
+              <p className="text-sm font-medium text-gray-900 truncate" data-testid="text-user-name">
                 {getUserDisplayName()}
               </p>
-              <p className="text-xs text-muted-foreground capitalize" data-testid="text-user-role">
+              <p className="text-xs text-gray-500 capitalize" data-testid="text-user-role">
                 {(user as any)?.role || "user"}
               </p>
             </div>
@@ -141,7 +144,7 @@ export default function Sidebar({ currentPage }: SidebarProps) {
               variant="ghost"
               size="sm"
               onClick={handleLogout}
-              className="text-muted-foreground hover:text-foreground p-1"
+              className="text-gray-500 hover:text-gray-700 p-1"
               data-testid="button-logout"
             >
               <LogOut className="h-4 w-4" />
