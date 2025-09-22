@@ -55,10 +55,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS middleware
+# CORS middleware (Open for demo)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=["*"],  # Open access as requested
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -100,7 +100,7 @@ app.include_router(admin.router, prefix="/api", tags=["admin"])
 @app.get("/")
 async def root():
     return {
-        "message": "DocINX Enhanced API v2.0 - Robust Document Intelligence Platform",
+        "message": "DocINX API v2.0 - Document Intelligence Platform (No Auth Mode)",
         "features": [
             "Multi-provider LLM fallbacks (OpenAI, Anthropic, Deterministic)",
             "Resilient embedding generation with local fallbacks",
@@ -111,7 +111,8 @@ async def root():
             "Support for PDF, DOCX, TXT, CSV formats",
             "Enhanced RAG with source citation"
         ],
-        "status": "running"
+        "status": "running",
+        "security": "disabled - no authentication required"
     }
 
 @app.get("/health")
@@ -124,8 +125,9 @@ async def health():
         # Check services if available
         health_data = {
             "status": "healthy",
-            "service": "DocINX Enhanced API",
+            "service": "DocINX API (No Auth)",
             "version": "2.0.0",
+            "security": "disabled",
             "queue_processor": queue_health
         }
         

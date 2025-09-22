@@ -14,6 +14,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 document_service = DocumentService()
 
+def get_user_id() -> str:
+    """Simple user ID for demo mode - no authentication barriers"""
+    return "demo-user"
+
 
 @router.post("/documents/upload", response_model=DocumentUploadResponse)
 async def upload_documents(
@@ -21,9 +25,9 @@ async def upload_documents(
     files: List[UploadFile] = File(...),
     db: AsyncSession = Depends(get_db)
 ):
-    """Upload documents for processing"""
+    """Upload documents for processing - Demo Mode (no auth required)"""
     try:
-        user_id = "anonymous-user"  # Default user for non-authenticated mode
+        user_id = get_user_id()  # Simple demo user
         
         if not files:
             raise HTTPException(status_code=400, detail="No files uploaded")

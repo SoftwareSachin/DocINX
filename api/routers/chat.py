@@ -18,6 +18,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 chat_service = EnhancedChatService()
 
+def get_user_id() -> str:
+    """Simple user ID for demo mode - no authentication required"""
+    return "demo-user"
+
 
 @router.post("/chat/query", response_model=ChatQueryResponse)
 async def process_chat_query(
@@ -26,7 +30,7 @@ async def process_chat_query(
 ):
     """Process a chat query using enhanced RAG with multi-provider fallbacks"""
     try:
-        user_id = "anonymous-user"  # Default user for non-authenticated mode
+        user_id = get_user_id()
         
         # Create new session if not provided
         session_id = request.session_id
@@ -73,7 +77,7 @@ async def process_chat_query(
 async def get_chat_sessions(db: AsyncSession = Depends(get_db)):
     """Get all chat sessions for user with enhanced session management"""
     try:
-        user_id = "anonymous-user"
+        user_id = get_user_id()
         sessions = await chat_service.get_chat_sessions(user_id)
         
         # Convert to proper response format
@@ -96,7 +100,7 @@ async def get_chat_sessions(db: AsyncSession = Depends(get_db)):
 async def get_chat_messages(session_id: str, db: AsyncSession = Depends(get_db)):
     """Get messages for a chat session with enhanced message handling"""
     try:
-        user_id = "anonymous-user"
+        user_id = get_user_id()
         
         # Get messages using enhanced chat service
         messages = await chat_service.get_chat_history(session_id, user_id)

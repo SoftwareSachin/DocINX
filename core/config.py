@@ -66,4 +66,8 @@ class Settings(BaseSettings):
     s3_bucket: str = os.getenv("S3_BUCKET", "docinx-documents")
     s3_region: str = os.getenv("S3_REGION", "us-east-1")
     
+    # Cache settings (Resource management)
+    max_cache_size: int = 1000
+    cache_ttl_seconds: int = 300  # 5 minutes
+    
 settings = Settings()
