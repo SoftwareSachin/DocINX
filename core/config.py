@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     
     # OpenAI
     openai_api_key: Optional[str] = None
-    openai_model: str = "gpt-4"
+    openai_model: str = "gpt-3.5-turbo"
     
     # Embedding settings
     embedding_model: str = "text-embedding-3-small"
