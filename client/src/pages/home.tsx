@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import Sidebar from "@/components/Sidebar";
+import Layout from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Cog, Search, Users, Upload, BarChart3 } from "lucide-react";
@@ -62,16 +62,13 @@ export default function Home() {
         description="DocINX dashboard - view your document processing statistics, recent uploads, and manage your document intelligence workflow."
         keywords="document dashboard, file management, document statistics, upload documents"
       />
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar currentPage="files" />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <Layout currentPage="files">
         {/* Header */}
         <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-6 py-4 shadow-sm" data-testid="header-dashboard">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <div className="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
+                <BarChart3 className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100" data-testid="text-page-title">Dashboard</h1>
@@ -80,7 +77,7 @@ export default function Home() {
             </div>
             <FileUpload 
               trigger={
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white" data-testid="button-upload">
+                <Button className="bg-indigo-600 hover:bg-indigo-700 text-white" data-testid="button-upload">
                   <Upload className="mr-2 h-4 w-4" />
                   Upload Documents
                 </Button>
@@ -90,7 +87,7 @@ export default function Home() {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6" data-testid="main-dashboard">
+        <div className="flex-1 overflow-auto p-6" data-testid="main-dashboard">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm" data-testid="card-stat-total">
@@ -102,8 +99,8 @@ export default function Home() {
                       {statsLoading ? "..." : (stats as any)?.totalDocuments || 0}
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
                   </div>
                 </div>
               </CardContent>
@@ -203,8 +200,8 @@ export default function Home() {
                 <FileUpload 
                   trigger={
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors cursor-pointer" data-testid="dropzone-quick-upload">
-                      <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Upload className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                      <div className="w-16 h-16 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Upload className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
                       </div>
                       <p className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Drop files here to upload</p>
                       <p className="text-gray-600 dark:text-gray-400 mb-4">Support for PDF, DOCX, TXT, CSV files up to 10MB</p>
@@ -217,9 +214,8 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
-        </main>
-      </div>
-    </div>
+        </div>
+      </Layout>
     </>
   );
 }

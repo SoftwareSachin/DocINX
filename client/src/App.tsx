@@ -11,6 +11,9 @@ import Documents from "@/pages/documents";
 import DocumentDetail from "@/pages/document-detail";
 import Chat from "@/pages/chat";
 import Admin from "@/pages/admin";
+import Datasets from "@/pages/datasets";
+import Search from "@/pages/search";
+import MCP from "@/pages/mcp";
 
 function Router() {
   // No authentication needed - directly render main app routes
@@ -19,6 +22,9 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/documents" component={Documents} />
       <Route path="/documents/:id" component={DocumentDetail} />
+      <Route path="/datasets" component={Datasets} />
+      <Route path="/search" component={Search} />
+      <Route path="/mcp" component={MCP} />
       <Route path="/chat" component={Chat} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />

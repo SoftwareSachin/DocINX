@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import Sidebar from "@/components/Sidebar";
+import Layout from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -186,10 +186,8 @@ export default function Documents() {
         description="Manage your document library in DocINX. Upload, search, and organize your PDF, DOCX, and text files for AI-powered analysis."
         keywords="document library, file management, PDF upload, document search, file organization"
       />
-      <div className="flex h-screen bg-gray-50">
-      <Sidebar currentPage="documents" />
+      <Layout currentPage="files">
       
-      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-6 py-4" data-testid="header-documents">
           <div className="flex items-center justify-between">
@@ -205,7 +203,7 @@ export default function Documents() {
               <div className="text-sm text-gray-600">Connected to Media</div>
               <FileUpload 
                 trigger={
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium" data-testid="button-upload">
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium" data-testid="button-upload">
                     + New Files
                   </Button>
                 }
@@ -244,7 +242,7 @@ export default function Documents() {
                       placeholder="Search Files"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 w-80 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="pl-10 pr-4 py-2 w-80 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                       data-testid="input-search"
                     />
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -354,7 +352,7 @@ export default function Documents() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => window.location.href = `/documents/${doc.id}`}
-                                className="text-blue-600 hover:text-blue-800"
+                                className="text-indigo-600 hover:text-indigo-800"
                                 data-testid={`button-view-${doc.id}`}
                               >
                                 <Eye className="h-4 w-4" />
@@ -491,8 +489,7 @@ export default function Documents() {
             </div>
           </div>
         </main>
-      </div>
-    </div>
+      </Layout>
     </>
   );
 }
