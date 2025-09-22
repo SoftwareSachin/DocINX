@@ -113,12 +113,14 @@ class DocumentService:
     
     async def get_document_stats(self, db: AsyncSession) -> dict:
         """Get document statistics"""
+        from sqlalchemy import case
+        
         result = await db.execute(
             select(
                 func.count().label("total"),
-                func.sum(func.case((Document.status == "processing", 1), else_=0)).label("processing"),
-                func.sum(func.case((Document.status == "ready", 1), else_=0)).label("ready"),
-                func.sum(func.case((Document.status == "failed", 1), else_=0)).label("failed")
+                func.sum(case((Document.status == "processing", 1), else_=0)).label("processing"),
+                func.sum(case((Document.status == "ready", 1), else_=0)).label("ready"),
+                func.sum(case((Document.status == "failed", 1), else_=0)).label("failed")
             ).select_from(Document)
         )
         
