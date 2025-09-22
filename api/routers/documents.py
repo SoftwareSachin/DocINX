@@ -1,16 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
+import logging
 
 from db.session import get_db
 from schemas.document import DocumentResponse, DocumentUploadResponse, DocumentStats
 from services.document_service import DocumentService
-from services.document_processor import DocumentProcessor
+from services.queue_processor import process_document_task
 from core.config import settings
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 document_service = DocumentService()
-document_processor = DocumentProcessor()
 
 
 @router.post("/documents/upload", response_model=DocumentUploadResponse)
@@ -29,18 +31,27 @@ async def upload_documents(
         uploaded_documents = []
         
         for file in files:
-            # Validate file type
-            if file.content_type not in [
+            # Enhanced file type validation (including CSV)
+            supported_types = [
                 "application/pdf",
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                "text/plain"
-            ]:
-                raise HTTPException(status_code=400, detail=f"Unsupported file type: {file.content_type}")
+                "text/plain",
+                "text/csv",
+                "application/csv"
+            ]
+            if file.content_type not in supported_types:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Unsupported file type: {file.content_type}. Supported: PDF, DOCX, TXT, CSV"
+                )
             
             # Validate file size
             file_content = await file.read()
             if len(file_content) > settings.max_file_size:
-                raise HTTPException(status_code=400, detail="File too large")
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"File too large. Maximum size: {settings.max_file_size // (1024*1024)}MB"
+                )
             
             # Create document record
             filename = file.filename or "unknown_file"
@@ -52,25 +63,50 @@ async def upload_documents(
                 file_key=f"uploads/{user_id}/{file.filename}",
                 mime_type=file.content_type,
                 file_size=len(file_content),
-                status="processing"
+                status="queued"  # Start with queued status
             )
             
             uploaded_documents.append(document)
             
-            # Process document in background
-            background_tasks.add_task(
-                document_processor.process_document,
-                document.id,
-                file_content
-            )
+            # Queue document for robust processing with retry and fallbacks
+            try:
+                task = process_document_task.delay(document.id, file_content)
+                logger.info(f"Document {document.id} queued for processing with task {task.id}")
+            except Exception as queue_error:
+                logger.error(f"Failed to queue document {document.id}: {str(queue_error)}")
+                # Fallback to immediate background processing
+                background_tasks.add_task(
+                    _fallback_process_document,
+                    document.id,
+                    file_content
+                )
+        
+        # Enhanced response with processing information
+        processing_info = "Files uploaded and queued for robust processing with automatic retries and fallbacks."
+        if any(doc.status == "queued" for doc in uploaded_documents):
+            processing_info += " You'll see documents appear as they complete processing."
         
         return DocumentUploadResponse(
-            message="Files uploaded successfully",
+            message=processing_info,
             documents=uploaded_documents
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to upload files")
+        logger.error(f"Document upload failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload files: {str(e)}")
+
+
+async def _fallback_process_document(document_id: str, file_content: bytes):
+    """Fallback document processing when queue is unavailable"""
+    try:
+        from services.document_processor import DocumentProcessor
+        processor = DocumentProcessor()
+        result = await processor.process_document(document_id, file_content)
+        logger.info(f"Fallback processing completed for document {document_id}: {result}")
+    except Exception as e:
+        logger.error(f"Fallback processing failed for document {document_id}: {str(e)}")
 
 
 @router.get("/documents", response_model=List[DocumentResponse])

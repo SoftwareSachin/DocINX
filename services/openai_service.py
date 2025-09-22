@@ -52,7 +52,7 @@ class OpenAIService:
     )
     async def generate_chat_completion(
         self,
-        messages: List[Dict[str, Any]],
+        messages: List[Dict[str, str]],
         max_tokens: Optional[int] = 1000,
         temperature: float = 0.7
     ) -> str:
