@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Search, Eye, Download, Trash2, RotateCw, FileText, File } from "lucide-react";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Upload, Search, Eye, Download, Trash2, RotateCw, FileText, File, ChevronLeft, ChevronRight } from "lucide-react";
 import FileUpload from "@/components/FileUpload";
 import DocumentCard from "@/components/DocumentCard";
 import SEOHead from "@/components/SEOHead";
@@ -19,6 +20,8 @@ export default function Documents() {
   const { isAuthenticated, isLoading } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -109,6 +112,25 @@ export default function Documents() {
     const matchesStatus = statusFilter === "all" || doc.status === statusFilter;
     return matchesSearch && matchesStatus;
   }) || [];
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
+
+  // Clamp page when data size or page size changes
+  useEffect(() => {
+    const totalPagesNew = Math.max(1, Math.ceil(filteredDocuments.length / pageSize));
+    setCurrentPage((prevPage) => Math.min(prevPage, totalPagesNew));
+  }, [filteredDocuments.length, pageSize]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredDocuments.length / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const currentDocuments = filteredDocuments.slice(startIndex, endIndex);
+  const displayStart = filteredDocuments.length === 0 ? 0 : startIndex + 1;
+  const displayEnd = Math.min(endIndex, filteredDocuments.length);
 
   const getFileIcon = (mimeType: string) => {
     if (mimeType === "application/pdf") return FileText;
@@ -206,7 +228,10 @@ export default function Documents() {
             <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-medium text-gray-900">Files</h3>
-                <div className="text-sm text-gray-500">{filteredDocuments.length} files</div>
+                <div className="text-sm text-gray-500">
+                  {filteredDocuments.length === 0 ? "0 files" : 
+                   `Showing ${displayStart}-${displayEnd} of ${filteredDocuments.length} files`}
+                </div>
               </div>
             </div>
             
@@ -292,7 +317,7 @@ export default function Documents() {
                     </tr>
                   </thead>
                   <tbody className="bg-card divide-y divide-border">
-                    {filteredDocuments.map((doc: any) => (
+                    {currentDocuments.map((doc: any) => (
                       <tr key={doc.id} className="hover:bg-accent transition-colors" data-testid={`row-document-${doc.id}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
@@ -364,6 +389,105 @@ export default function Documents() {
                   </tbody>
                 </table>
               )}
+              
+              {/* Pagination Controls */}
+              {filteredDocuments.length > 0 && totalPages > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+                    <div className="flex items-center space-x-3">
+                      <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
+                        <SelectTrigger className="w-24 border-gray-300">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <span className="text-sm text-gray-500">per page</span>
+                    </div>
+                    
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage > 1) setCurrentPage(currentPage - 1);
+                            }}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                          />
+                        </PaginationItem>
+                        
+                        {(() => {
+                          const getPageNumbers = () => {
+                            const delta = 2;
+                            const range = [];
+                            const rangeWithDots = [];
+                            
+                            for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+                              range.push(i);
+                            }
+                            
+                            if (currentPage - delta > 2) {
+                              rangeWithDots.push(1, '...');
+                            } else {
+                              rangeWithDots.push(1);
+                            }
+                            
+                            rangeWithDots.push(...range);
+                            
+                            if (currentPage + delta < totalPages - 1) {
+                              rangeWithDots.push('...', totalPages);
+                            } else if (totalPages > 1) {
+                              rangeWithDots.push(totalPages);
+                            }
+                            
+                            return rangeWithDots;
+                          };
+                          
+                          return getPageNumbers().map((page, index) => {
+                            if (page === '...') {
+                              return (
+                                <PaginationItem key={`dots-${index}`}>
+                                  <span className="flex h-9 w-9 items-center justify-center text-gray-400">...</span>
+                                </PaginationItem>
+                              );
+                            }
+                            
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setCurrentPage(page as number);
+                                  }}
+                                  isActive={currentPage === page}
+                                  data-testid={`pagination-page-${page}`}
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          });
+                        })()}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                            }}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
             </div>
           </div>
         </main>
