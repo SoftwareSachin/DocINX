@@ -77,33 +77,47 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
         
       case 'text/csv':
       case 'application/csv':
+      case 'application/vnd.ms-excel':
         console.log('Processing CSV file...');
         try {
+          // Use robust CSV parser
+          const { parse } = await import('csv-parse');
           const csvContent = buffer.toString('utf8');
-          // Simple CSV parsing - convert rows to readable text blocks
-          const lines = csvContent.split('\n').filter(line => line.trim());
-          if (lines.length === 0) {
+          
+          // Remove BOM if present
+          const cleanCsvContent = csvContent.replace(/^\uFEFF/, '');
+          
+          const records = await new Promise<string[][]>((resolve, reject) => {
+            parse(cleanCsvContent, {
+              auto_parse: false,
+              skip_empty_lines: true,
+              trim: true,
+              relax_quotes: true,
+            }, (err, output) => {
+              if (err) reject(err);
+              else resolve(output);
+            });
+          });
+          
+          if (records.length === 0) {
             extractedText = 'Empty CSV file';
             break;
           }
           
-          // First line as headers
-          const headers = lines[0].split(',').map(h => h.trim().replace(/['"]/g, ''));
-          const dataLines = lines.slice(1);
+          // First row as headers
+          const headers = records[0];
+          const dataRows = records.slice(1);
           
-          // Convert each row to a readable text block
-          const textBlocks = dataLines
-            .filter(line => line.trim())
-            .map((line, index) => {
-              const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''));
-              const rowText = headers.map((header, i) => 
-                `${header}: ${values[i] || 'N/A'}`
-              ).join(', ');
-              return `Row ${index + 1}: ${rowText}`;
-            });
+          // Convert each row to readable text blocks
+          const textBlocks = dataRows.map((row, index) => {
+            const rowText = headers.map((header, i) => 
+              `${header}: ${row[i] || 'N/A'}`
+            ).join(', ');
+            return `Row ${index + 1}: ${rowText}`;
+          });
           
-          extractedText = `CSV Data Summary:\nHeaders: ${headers.join(', ')}\nTotal Rows: ${dataLines.length}\n\nData:\n${textBlocks.join('\n')}`;
-          console.log(`Extracted ${extractedText.length} characters from CSV with ${dataLines.length} rows`);
+          extractedText = `CSV Data Summary:\nHeaders: ${headers.join(', ')}\nTotal Rows: ${dataRows.length}\n\nData:\n${textBlocks.join('\n')}`;
+          console.log(`Extracted ${extractedText.length} characters from CSV with ${dataRows.length} rows`);
         } catch (csvError) {
           console.error('CSV parsing error:', csvError);
           throw new Error(`Failed to parse CSV: ${csvError instanceof Error ? csvError.message : 'Unknown error'}`);
@@ -114,10 +128,8 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
         throw new Error(`Unsupported file type: ${document.mimeType}`);
     }
     
-    // Trim text if too long (keep first 10000 characters)
-    if (extractedText.length > 10000) {
-      extractedText = extractedText.substring(0, 10000) + '\n\n[Text truncated - showing first 10,000 characters]';
-    }
+    // Remove global truncation - let chunking handle large content properly
+    // Large documents should be chunked, not globally truncated to preserve full content for embeddings
     
     // Generate embeddings using our multi-AI service
     console.log('Generating embeddings for document chunks...');
@@ -270,6 +282,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 10, // Max 10 files per upload
   },
   fileFilter: (req, file, cb) => {
     console.log(`File upload - Original name: ${file.originalname}, MIME type: ${file.mimetype}`);
@@ -279,13 +292,20 @@ const upload = multer({
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "text/plain",
       "text/csv",
-      "application/csv"
+      "application/csv",
+      "application/vnd.ms-excel"
     ];
     
-    if (allowedTypes.includes(file.mimetype)) {
+    // Check by MIME type and file extension for better CSV support
+    const fileExtension = file.originalname.toLowerCase().split('.').pop();
+    const isValidMimeType = allowedTypes.includes(file.mimetype);
+    const isValidExtension = ['pdf', 'docx', 'txt', 'csv'].includes(fileExtension || '');
+    const isCsvFile = fileExtension === 'csv' || file.mimetype.includes('csv') || file.mimetype === 'application/vnd.ms-excel';
+    
+    if (isValidMimeType || (isValidExtension && isCsvFile)) {
       cb(null, true);
     } else {
-      console.log(`Rejected file type: ${file.mimetype} for file: ${file.originalname}`);
+      console.log(`Rejected file - MIME: ${file.mimetype}, Extension: ${fileExtension} for file: ${file.originalname}`);
       cb(new Error(`Unsupported file type: ${file.mimetype}`));
     }
   },

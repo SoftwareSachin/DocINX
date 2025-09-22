@@ -216,13 +216,57 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchSimilarChunks(embedding: number[], limit: number): Promise<Chunk[]> {
-    // Using PostgreSQL's array operations for similarity search
-    // In production, you'd want to use pgvector or similar for better performance
-    return await db
+    // Implement proper cosine similarity using PostgreSQL operations
+    // This is a basic implementation - pgvector would be more efficient for production
+    const similarChunks = await db
       .select()
       .from(chunks)
-      .where(sql`embedding IS NOT NULL`)
-      .limit(limit);
+      .leftJoin(documents, eq(chunks.documentId, documents.id))
+      .where(
+        and(
+          sql`embedding IS NOT NULL`,
+          eq(documents.status, 'ready')
+        )
+      );
+
+    // Calculate cosine similarity for each chunk
+    const chunksWithSimilarity = similarChunks
+      .map(row => {
+        const chunk = row.chunks;
+        if (!chunk.embedding) return null;
+        
+        const similarity = this.calculateCosineSimilarity(embedding, chunk.embedding);
+        return { chunk, similarity };
+      })
+      .filter((item): item is { chunk: Chunk; similarity: number } => 
+        item !== null && item.similarity > 0.1  // Basic similarity threshold
+      )
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, limit)
+      .map(item => item.chunk);
+
+    return chunksWithSimilarity;
+  }
+
+  private calculateCosineSimilarity(a: number[], b: number[]): number {
+    if (a.length !== b.length) return 0;
+    
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+    
+    normA = Math.sqrt(normA);
+    normB = Math.sqrt(normB);
+    
+    if (normA === 0 || normB === 0) return 0;
+    
+    return dotProduct / (normA * normB);
   }
 
   async deleteChunksByDocument(documentId: string): Promise<void> {
