@@ -63,7 +63,7 @@ export default function Home() {
         keywords="document dashboard, file management, document statistics, upload documents"
       />
       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar currentPage="dashboard" />
+      <Sidebar currentPage="files" />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
