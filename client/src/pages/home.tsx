@@ -96,7 +96,7 @@ export default function Home() {
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Documents</p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-total-documents">
-                      {statsLoading ? "..." : (stats as any)?.totalDocuments || 0}
+                      {statsLoading ? "..." : (stats as any)?.total_documents || 0}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
@@ -128,7 +128,7 @@ export default function Home() {
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Queries Today</p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-queries-today">
-                      {statsLoading ? "..." : (stats as any)?.queriesToday || 0}
+                      {statsLoading ? "..." : (stats as any)?.queries_today || 0}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
@@ -144,7 +144,7 @@ export default function Home() {
                   <div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Active Users</p>
                     <p className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-active-users">
-                      {statsLoading ? "..." : (stats as any)?.activeUsers || 0}
+                      {statsLoading ? "..." : (stats as any)?.active_users || 0}
                     </p>
                   </div>
                   <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
