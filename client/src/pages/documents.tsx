@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Search, Eye, Download, Trash2, RotateCw } from "lucide-react";
+import { Upload, Search, Eye, Download, Trash2, RotateCw, FileText, File } from "lucide-react";
 import FileUpload from "@/components/FileUpload";
 import DocumentCard from "@/components/DocumentCard";
 import SEOHead from "@/components/SEOHead";
@@ -111,9 +111,9 @@ export default function Documents() {
   }) || [];
 
   const getFileIcon = (mimeType: string) => {
-    if (mimeType === "application/pdf") return "fas fa-file-pdf text-destructive";
-    if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return "fas fa-file-word text-primary";
-    return "fas fa-file-alt text-chart-4";
+    if (mimeType === "application/pdf") return FileText;
+    if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return FileText;
+    return FileText;
   };
 
   const formatFileSize = (bytes: number) => {
@@ -164,45 +164,70 @@ export default function Documents() {
         description="Manage your document library in DocINX. Upload, search, and organize your PDF, DOCX, and text files for AI-powered analysis."
         keywords="document library, file management, PDF upload, document search, file organization"
       />
-      <div className="flex h-screen bg-background">
+      <div className="flex h-screen bg-gray-50">
       <Sidebar currentPage="documents" />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-card border-b border-border px-6 py-4" data-testid="header-documents">
+        <header className="bg-white border-b border-gray-200 px-6 py-4" data-testid="header-documents">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold" data-testid="text-page-title">Document Library</h2>
-            <FileUpload 
-              trigger={
-                <Button data-testid="button-upload">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Documents
-                </Button>
-              }
-            />
+            <div className="flex items-center space-x-2">
+              <button className="p-1 rounded hover:bg-gray-100">
+                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h2 className="text-xl font-semibold text-gray-900" data-testid="text-page-title">Files</h2>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="text-sm text-gray-600">Connected to Media</div>
+              <FileUpload 
+                trigger={
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium" data-testid="button-upload">
+                    + New Files
+                  </Button>
+                }
+              />
+              <Button 
+                variant="outline" 
+                className="px-3 py-2 text-sm border-gray-300"
+                onClick={() => queryClient.invalidateQueries({ queryKey: ["/api/documents"] })}
+              >
+                <RotateCw className="w-4 h-4 mr-2" />
+                Refresh Status
+              </Button>
+            </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto p-6" data-testid="main-documents">
-          <Card className="border-border">
-            <div className="p-6 border-b border-border">
+        <main className="flex-1 overflow-auto" data-testid="main-documents">
+          <div className="bg-white mx-6 mt-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="p-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Document Library</h3>
+                <h3 className="text-base font-medium text-gray-900">Files</h3>
+                <div className="text-sm text-gray-500">{filteredDocuments.length} files</div>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4">
                   <div className="relative">
                     <Input
                       type="text"
-                      placeholder="Search documents..."
+                      placeholder="Search Files"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4 py-2 w-64"
+                      className="pl-10 pr-4 py-2 w-80 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       data-testid="input-search"
                     />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   </div>
+                </div>
+                <div className="flex items-center space-x-3">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-40" data-testid="select-status-filter">
+                    <SelectTrigger className="w-40 border-gray-300" data-testid="select-status-filter">
                       <SelectValue placeholder="All Status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -271,8 +296,11 @@ export default function Documents() {
                       <tr key={doc.id} className="hover:bg-accent transition-colors" data-testid={`row-document-${doc.id}`}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="w-8 h-8 bg-muted rounded flex items-center justify-center mr-3">
-                              <i className={`${getFileIcon(doc.mimeType)} text-sm`}></i>
+                            <div className="w-8 h-8 bg-red-100 rounded flex items-center justify-center mr-3">
+                              {(() => {
+                                const IconComponent = getFileIcon(doc.mimeType);
+                                return <IconComponent className="w-4 h-4 text-red-600" />;
+                              })()}
                             </div>
                             <div>
                               <div className="text-sm font-medium" data-testid={`text-document-title-${doc.id}`}>{doc.title}</div>
@@ -300,7 +328,8 @@ export default function Documents() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-primary hover:text-primary/80"
+                                onClick={() => window.location.href = `/documents/${doc.id}`}
+                                className="text-blue-600 hover:text-blue-800"
                                 data-testid={`button-view-${doc.id}`}
                               >
                                 <Eye className="h-4 w-4" />
@@ -336,7 +365,7 @@ export default function Documents() {
                 </table>
               )}
             </div>
-          </Card>
+          </div>
         </main>
       </div>
     </div>
