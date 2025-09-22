@@ -11,7 +11,7 @@ Routes tasks to the optimal AI platform for maximum performance:
 
 // Initialize AI clients
 const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key"
+  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR
 });
 
 const grok = new OpenAI({ 

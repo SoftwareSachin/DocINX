@@ -75,6 +75,41 @@ async function processDocumentAsync(documentId: string, buffer: Buffer): Promise
         extractedText = buffer.toString('utf8');
         break;
         
+      case 'text/csv':
+      case 'application/csv':
+        console.log('Processing CSV file...');
+        try {
+          const csvContent = buffer.toString('utf8');
+          // Simple CSV parsing - convert rows to readable text blocks
+          const lines = csvContent.split('\n').filter(line => line.trim());
+          if (lines.length === 0) {
+            extractedText = 'Empty CSV file';
+            break;
+          }
+          
+          // First line as headers
+          const headers = lines[0].split(',').map(h => h.trim().replace(/['"]/g, ''));
+          const dataLines = lines.slice(1);
+          
+          // Convert each row to a readable text block
+          const textBlocks = dataLines
+            .filter(line => line.trim())
+            .map((line, index) => {
+              const values = line.split(',').map(v => v.trim().replace(/['"]/g, ''));
+              const rowText = headers.map((header, i) => 
+                `${header}: ${values[i] || 'N/A'}`
+              ).join(', ');
+              return `Row ${index + 1}: ${rowText}`;
+            });
+          
+          extractedText = `CSV Data Summary:\nHeaders: ${headers.join(', ')}\nTotal Rows: ${dataLines.length}\n\nData:\n${textBlocks.join('\n')}`;
+          console.log(`Extracted ${extractedText.length} characters from CSV with ${dataLines.length} rows`);
+        } catch (csvError) {
+          console.error('CSV parsing error:', csvError);
+          throw new Error(`Failed to parse CSV: ${csvError instanceof Error ? csvError.message : 'Unknown error'}`);
+        }
+        break;
+        
       default:
         throw new Error(`Unsupported file type: ${document.mimeType}`);
     }
@@ -242,7 +277,9 @@ const upload = multer({
     const allowedTypes = [
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "text/plain"
+      "text/plain",
+      "text/csv",
+      "application/csv"
     ];
     
     if (allowedTypes.includes(file.mimetype)) {

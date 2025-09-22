@@ -200,7 +200,7 @@ export default function Home() {
                         <Upload className="text-2xl text-primary" />
                       </div>
                       <p className="text-lg font-medium mb-2">Drop files here to upload</p>
-                      <p className="text-muted-foreground mb-4">Support for PDF, DOCX, TXT files up to 10MB</p>
+                      <p className="text-muted-foreground mb-4">Support for PDF, DOCX, TXT, CSV files up to 10MB</p>
                       <Button variant="outline" data-testid="button-choose-files">
                         Choose Files
                       </Button>

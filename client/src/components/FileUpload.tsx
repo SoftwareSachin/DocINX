@@ -79,12 +79,14 @@ export default function FileUpload({ trigger }: FileUploadProps) {
       const validTypes = [
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 
-        "text/plain"
+        "text/plain",
+        "text/csv",
+        "application/csv"
       ];
       
       // Check file extension as fallback if MIME type detection fails
       const fileExtension = file.name.toLowerCase().split('.').pop();
-      const validExtensions = ['pdf', 'docx', 'txt'];
+      const validExtensions = ['pdf', 'docx', 'txt', 'csv'];
       
       const maxSize = 10 * 1024 * 1024; // 10MB
 
@@ -188,12 +190,12 @@ export default function FileUpload({ trigger }: FileUploadProps) {
               <Upload className="h-8 w-8 text-primary" />
             </div>
             <h4 className="text-xl font-semibold mb-2">Drop files here or click to browse</h4>
-            <p className="text-muted-foreground mb-6">Support for PDF, DOCX, TXT files up to 10MB each</p>
+            <p className="text-muted-foreground mb-6">Support for PDF, DOCX, TXT, CSV files up to 10MB each</p>
             <input
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".pdf,.docx,.txt"
+              accept=".pdf,.docx,.txt,.csv"
               onChange={(e) => handleFileSelect(e.target.files)}
               className="hidden"
               data-testid="input-file"
