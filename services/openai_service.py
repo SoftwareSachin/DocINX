@@ -1,6 +1,7 @@
 import openai
 from typing import List, Optional, Dict, Any
 from tenacity import retry, stop_after_attempt, wait_exponential
+import os
 
 from core.config import settings
 
