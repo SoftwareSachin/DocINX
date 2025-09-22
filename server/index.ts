@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
+import { spawn } from "child_process";
 
 const app = express();
 app.use(express.json());
@@ -84,11 +85,31 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
+  // Start Python FastAPI service on port 8000
+  const pythonProcess = spawn('python', ['-m', 'uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '8000'], {
+    cwd: process.cwd(),
+    stdio: ['ignore', 'pipe', 'pipe']
+  });
+
+  pythonProcess.stdout?.on('data', (data) => {
+    console.log(`[python] ${data.toString().trim()}`);
+  });
+
+  pythonProcess.stderr?.on('data', (data) => {
+    console.log(`[python] ${data.toString().trim()}`);
+  });
+
+  pythonProcess.on('close', (code) => {
+    console.log(`[python] Process exited with code ${code}`);
+  });
+
+  // Start Express server
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    log(`Python FastAPI service should be starting on port 8000`);
   });
 })();

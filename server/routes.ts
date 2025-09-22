@@ -319,60 +319,58 @@ const querySchema = z.object({
 export async function registerRoutes(app: Express): Promise<Server> {
   // No authentication needed
 
-  // Document routes
+  // Proxy routes to Python FastAPI service (DocINX requirement: FastAPI as primary backend)
+  const PYTHON_API_URL = process.env.PYTHON_AI_SERVICE_URL || 'http://localhost:8000';
+
+  // Document routes - proxy to Python
   app.post('/api/documents/upload', upload.array('files'), async (req: any, res) => {
     try {
-      const userId = 'anonymous-user'; // Default user for non-authenticated mode
       const files = req.files as Express.Multer.File[];
       
       if (!files || files.length === 0) {
         return res.status(400).json({ message: "No files uploaded" });
       }
 
-      const uploadedDocuments = [];
+      // Create FormData to send to Python FastAPI
+      const formData = new FormData();
+      files.forEach(file => {
+        const blob = new Blob([file.buffer], { type: file.mimetype });
+        formData.append('files', blob, file.originalname);
+      });
+      formData.append('user_id', 'anonymous-user');
 
-      for (const file of files) {
-        // In production, you would upload to S3 or similar storage
-        const fileKey = `uploads/${userId}/${randomUUID()}-${file.originalname}`;
-        
-        const document = await storage.createDocument({
-          title: file.originalname,
-          filename: file.originalname,
-          uploaderId: userId,
-          fileKey,
-          mimeType: file.mimetype,
-          fileSize: file.size,
-          status: "processing",
-          errorMessage: null,
-          extractedText: null,
-        });
+      // Proxy to Python FastAPI service
+      const response = await fetch(`${PYTHON_API_URL}/api/documents/upload`, {
+        method: 'POST',
+        body: formData,
+      });
 
-        uploadedDocuments.push(document);
-
-        // Process document asynchronously
-        processDocumentAsync(document.id, file.buffer).catch(error => {
-          console.error(`Error processing document ${document.id}:`, error);
-        });
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Python API error: ${response.status} - ${error}`);
       }
 
-      res.json({ 
-        message: "Files uploaded successfully", 
-        documents: uploadedDocuments 
-      });
+      const result = await response.json();
+      res.json(result);
     } catch (error) {
-      console.error("Error uploading files:", error);
+      console.error("Error proxying upload to Python API:", error);
       res.status(500).json({ message: "Failed to upload files" });
     }
   });
 
   app.get('/api/documents', async (req: any, res) => {
     try {
-      // Show all documents in non-authenticated mode
-      const documents = await storage.getAllDocuments();
+      // Proxy to Python FastAPI service
+      const response = await fetch(`${PYTHON_API_URL}/api/documents?user_id=anonymous-user`);
       
+      if (!response.ok) {
+        throw new Error(`Python API error: ${response.status}`);
+      }
+
+      const documents = await response.json();
       res.json(documents);
     } catch (error) {
-      console.error("Error fetching documents:", error);
+      console.error("Error proxying documents request:", error);
       res.status(500).json({ message: "Failed to fetch documents" });
     }
   });
@@ -434,25 +432,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat routes
   app.post('/api/chat/query', async (req: any, res) => {
     try {
-      const userId = 'anonymous-user';
       const { query, sessionId } = querySchema.parse(req.body);
       
-      let currentSessionId = sessionId;
-      
-      // Create new session if not provided
-      if (!currentSessionId) {
-        const session = await storage.createChatSession({ userId });
-        currentSessionId = session.id;
+      // Proxy to Python FastAPI service
+      const response = await fetch(`${PYTHON_API_URL}/api/chat/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          session_id: sessionId,
+          user_id: 'anonymous-user'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Python API error: ${response.status}`);
       }
 
-      const response = await processChatQuery(currentSessionId, query, userId);
-      
-      res.json({
-        ...response,
-        sessionId: currentSessionId,
-      });
+      const result = await response.json();
+      res.json(result);
     } catch (error) {
-      console.error("Error processing chat query:", error);
+      console.error("Error proxying chat query:", error);
       res.status(500).json({ message: "Failed to process query" });
     }
   });
@@ -488,23 +490,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stats and dashboard routes
   app.get('/api/stats/dashboard', async (req: any, res) => {
     try {
-      const documentStats = await storage.getDocumentStats();
+      // Proxy to Python FastAPI service
+      const response = await fetch(`${PYTHON_API_URL}/api/stats/dashboard?user_id=anonymous-user`);
       
-      // Calculate real statistics
-      const chatStats = await storage.getChatStatistics();
-      const activeUserStats = await storage.getActiveUserStatistics();
-      
-      const stats = {
-        totalDocuments: documentStats.total,
-        processing: documentStats.processing,
-        queriesToday: chatStats.todayQueries,
-        activeUsers: activeUserStats.activeUsers,
-        ...(await getAdminStats(documentStats)), // Always show admin stats in non-auth mode
-      };
+      if (!response.ok) {
+        throw new Error(`Python API error: ${response.status}`);
+      }
 
+      const stats = await response.json();
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching dashboard stats:", error);
+      console.error("Error proxying stats request:", error);
       res.status(500).json({ message: "Failed to fetch dashboard stats" });
     }
   });

@@ -1,7 +1,7 @@
 import numpy as np
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from db.models import Chunk, Document
 from core.config import settings
