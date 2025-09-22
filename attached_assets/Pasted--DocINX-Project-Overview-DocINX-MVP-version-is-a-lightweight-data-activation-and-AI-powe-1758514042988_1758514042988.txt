@@ -1,0 +1,76 @@
+# DocINX
+
+## Project Overview
+
+DocINX (MVP version) is a lightweight data activation and AI-powered insights platform. It is designed to unify structured and unstructured data sources, enrich them with embeddings, and provide a conversational interface for querying insights. The MVP focuses on simplicity — no complex governance or authentication systems, just the core pipeline to prove value.
+
+---
+
+## Core Objectives
+
+1. **Unified Data Ingestion** – Connect and ingest structured (CSV, SQL) and unstructured (PDF, text) sources.
+2. **Data Enrichment** – Apply embeddings and store in a vector database for semantic search.
+3. **Conversational Query Interface** – Enable natural language querying of data via an LLM.
+4. **Scalable MVP Foundations** – Deploy using cloud-agnostic, container-based microservices.
+
+---
+
+## MVP Functional Scope
+
+* **Data Ingestion**:
+
+  * Upload CSVs and PDFs via a simple web UI.
+  * Extract text from PDFs using parsing/OCR tools.
+  * Store ingested data in a raw data lake (S3/MinIO).
+
+* **Data Enrichment**:
+
+  * Generate embeddings (OpenAI, HuggingFace).
+  * Store embeddings in a vector DB (Weaviate / Pinecone / pgvector).
+
+* **Conversational AI**:
+
+  * Simple chatbot interface (React frontend + FastAPI backend).
+  * Backend orchestrates between LLM and vector DB.
+  * Responses cite sources (document + line reference).
+
+* **System Architecture**:
+
+  * Frontend: React + Tailwind.
+  * Backend: FastAPI (Python).
+  * Storage: MinIO/S3 + Postgres (pgvector).
+  * Vector DB: Weaviate or Pinecone.
+  * LLM: OpenAI GPT-4 (or local model if needed).
+  * Deployment: Docker + Kubernetes (optional for scaling).
+
+---
+
+## Project Timeline (MVP — 6 Weeks)
+
+* **Week 1–2:** Set up ingestion (CSV + PDF parsing, storage).
+* **Week 3:** Add embeddings pipeline + vector DB integration.
+* **Week 4:** Build basic conversational query layer with LLM.
+* **Week 5:** Integrate source citation + context retrieval.
+* **Week 6:** Frontend polish, testing, and deployment.
+
+---
+
+## Deliverables
+
+* Upload + ingest pipeline for CSVs and PDFs.
+* Embedding + vector search pipeline.
+* Conversational interface (chat with data).
+* Containerized deployment (Dockerized services).
+
+---
+
+## Next Steps (Beyond MVP)
+
+* Knowledge graph enrichment.
+* Multi-source connectors (email, APIs, databases).
+* Role-based governance and compliance (for enterprise readiness).
+* No-code/low-code workflow builder for business users.
+
+---
+
+This MVP strips DocINX down to its **simplest value proposition**: *ingest data → enrich with embeddings → query in natural language → get answers with sources.* It avoids authentication, compliance, or complex governance so you can prove the concept quickly and expand later.
