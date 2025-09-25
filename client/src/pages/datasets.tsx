@@ -121,6 +121,27 @@ export default function Datasets() {
     }
   });
 
+  // Dashboard creation mutation
+  const createDashboardMutation = useMutation({
+    mutationFn: async (dashboardData: { name: string; description?: string; datasetId?: string }) => {
+      return apiRequest('POST', '/api/dashboards?user_id=anonymous-user', dashboardData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboards'] });
+      toast({
+        title: "Dashboard created",
+        description: "Your dashboard has been created successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Dashboard creation failed",
+        description: error.message || "Failed to create dashboard",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -153,6 +174,20 @@ export default function Datasets() {
     queryMutation.mutate({
       datasetId: selectedDataset.id,
       queryText: data.queryText
+    });
+  };
+
+  const handleCreateDashboard = () => {
+    const dashboardName = selectedDataset 
+      ? `${selectedDataset.name} Dashboard` 
+      : `Dashboard ${Date.now()}`;
+    
+    createDashboardMutation.mutate({
+      name: dashboardName,
+      description: selectedDataset 
+        ? `Auto-generated dashboard for ${selectedDataset.name}` 
+        : "New dashboard",
+      datasetId: selectedDataset?.id
     });
   };
 
@@ -591,10 +626,17 @@ export default function Datasets() {
                                 <PieChart className="h-5 w-5 mr-2" />
                                 Dashboards
                               </span>
-                              <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
-                                <BarChart3 className="h-4 w-4 mr-2" />
-                                Create Dashboard
-                              </Button>
+                              {(dashboards as Dashboard[]).length > 0 && (
+                                <Button 
+                                  size="sm" 
+                                  className="bg-indigo-600 hover:bg-indigo-700"
+                                  onClick={handleCreateDashboard}
+                                  disabled={createDashboardMutation.isPending}
+                                >
+                                  <BarChart3 className="h-4 w-4 mr-2" />
+                                  Create Dashboard
+                                </Button>
+                              )}
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
@@ -602,7 +644,11 @@ export default function Datasets() {
                               <div className="text-center py-8 text-gray-500">
                                 <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                                 <p className="mb-4">No dashboards created yet</p>
-                                <Button className="bg-indigo-600 hover:bg-indigo-700">
+                                <Button 
+                                  className="bg-indigo-600 hover:bg-indigo-700"
+                                  onClick={handleCreateDashboard}
+                                  disabled={createDashboardMutation.isPending}
+                                >
                                   Create Your First Dashboard
                                 </Button>
                               </div>
