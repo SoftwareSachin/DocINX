@@ -98,7 +98,7 @@ export default function PowerBIDashboard({
   );
 
   const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState((dashboard.widgets?.length || 0) === 0);
   const [draggedWidget, setDraggedWidget] = useState<string | null>(null);
   const [showWidgetDialog, setShowWidgetDialog] = useState(false);
   const [newWidgetType, setNewWidgetType] = useState<ChartWidget['type']>('bar');
