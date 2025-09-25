@@ -81,21 +81,32 @@ export default function PowerBIDashboard({
   onSave,
   initialDashboard
 }: PowerBIDashboardProps) {
-  const [dashboard, setDashboard] = useState<DashboardData>(
-    initialDashboard || {
+  const [dashboard, setDashboard] = useState<DashboardData>(() => {
+    const baseDashboard: DashboardData = {
       id: `dashboard_${Date.now()}`,
       name: 'New Dashboard',
       description: '',
       widgets: [],
       layout: {
-        theme: 'corporate',
+        theme: 'corporate' as const,
         backgroundColor: '#f8fafc',
         gridSize: 20,
         showGrid: true
       },
       filters: []
+    };
+    
+    if (initialDashboard) {
+      return {
+        ...baseDashboard,
+        ...initialDashboard,
+        widgets: Array.isArray(initialDashboard.widgets) ? initialDashboard.widgets : [],
+        filters: Array.isArray(initialDashboard.filters) ? initialDashboard.filters : []
+      };
     }
-  );
+    
+    return baseDashboard;
+  });
 
   const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState((dashboard.widgets?.length || 0) === 0);
@@ -216,7 +227,7 @@ export default function PowerBIDashboard({
 
     setDashboard(prev => ({
       ...prev,
-      widgets: [...prev.widgets, newWidget]
+      widgets: [...(prev.widgets || []), newWidget]
     }));
 
     setShowWidgetDialog(false);
@@ -231,7 +242,7 @@ export default function PowerBIDashboard({
   const deleteWidget = (widgetId: string) => {
     setDashboard(prev => ({
       ...prev,
-      widgets: prev.widgets.filter(w => w.id !== widgetId)
+      widgets: (prev.widgets || []).filter(w => w.id !== widgetId)
     }));
     
     if (selectedWidget === widgetId) {
@@ -247,7 +258,7 @@ export default function PowerBIDashboard({
   const updateWidget = (widgetId: string, updates: Partial<ChartWidget>) => {
     setDashboard(prev => ({
       ...prev,
-      widgets: prev.widgets.map(w => 
+      widgets: (prev.widgets || []).map(w => 
         w.id === widgetId ? { ...w, ...updates } : w
       )
     }));
