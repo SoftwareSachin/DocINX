@@ -4,6 +4,10 @@ import {
   chunks,
   chatSessions,
   chatMessages,
+  datasets,
+  dashboards,
+  visualizations,
+  queries,
   type User,
   type UpsertUser,
   type Document,
@@ -14,6 +18,14 @@ import {
   type InsertChatSession,
   type ChatMessage,
   type InsertChatMessage,
+  type Dataset,
+  type InsertDataset,
+  type Dashboard,
+  type InsertDashboard,
+  type Visualization,
+  type InsertVisualization,
+  type Query,
+  type InsertQuery,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -55,6 +67,33 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUserRole(userId: string, role: string): Promise<User>;
   deleteUser(userId: string): Promise<void>;
+  
+  // Analytics operations
+  createDataset(dataset: InsertDataset): Promise<Dataset>;
+  getDataset(id: string): Promise<Dataset | undefined>;
+  getDatasetsByUser(userId: string): Promise<Dataset[]>;
+  getAllDatasets(): Promise<Dataset[]>;
+  updateDataset(id: string, updates: Partial<Dataset>): Promise<Dataset>;
+  deleteDataset(id: string): Promise<void>;
+  
+  createDashboard(dashboard: InsertDashboard): Promise<Dashboard>;
+  getDashboard(id: string): Promise<Dashboard | undefined>;
+  getDashboardsByUser(userId: string): Promise<Dashboard[]>;
+  getDashboardsByDataset(datasetId: string): Promise<Dashboard[]>;
+  updateDashboard(id: string, updates: Partial<Dashboard>): Promise<Dashboard>;
+  deleteDashboard(id: string): Promise<void>;
+  
+  createVisualization(visualization: InsertVisualization): Promise<Visualization>;
+  getVisualization(id: string): Promise<Visualization | undefined>;
+  getVisualizationsByDashboard(dashboardId: string): Promise<Visualization[]>;
+  updateVisualization(id: string, updates: Partial<Visualization>): Promise<Visualization>;
+  deleteVisualization(id: string): Promise<void>;
+  
+  createQuery(query: InsertQuery): Promise<Query>;
+  getQuery(id: string): Promise<Query | undefined>;
+  getQueriesByDataset(datasetId: string): Promise<Query[]>;
+  getQueriesByUser(userId: string): Promise<Query[]>;
+  deleteQuery(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -327,6 +366,150 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(userId: string): Promise<void> {
     await db.delete(users).where(eq(users.id, userId));
+  }
+
+  // Analytics operations
+  async createDataset(dataset: InsertDataset): Promise<Dataset> {
+    await this.ensureAnonymousUser(dataset.userId);
+    const [created] = await db.insert(datasets).values(dataset).returning();
+    return created;
+  }
+
+  async getDataset(id: string): Promise<Dataset | undefined> {
+    const [dataset] = await db.select().from(datasets).where(eq(datasets.id, id));
+    return dataset;
+  }
+
+  async getDatasetsByUser(userId: string): Promise<Dataset[]> {
+    return await db
+      .select()
+      .from(datasets)
+      .where(eq(datasets.userId, userId))
+      .orderBy(desc(datasets.createdAt));
+  }
+
+  async getAllDatasets(): Promise<Dataset[]> {
+    return await db
+      .select()
+      .from(datasets)
+      .orderBy(desc(datasets.createdAt));
+  }
+
+  async updateDataset(id: string, updates: Partial<Dataset>): Promise<Dataset> {
+    const [updated] = await db
+      .update(datasets)
+      .set(updates)
+      .where(eq(datasets.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteDataset(id: string): Promise<void> {
+    await db.delete(datasets).where(eq(datasets.id, id));
+  }
+
+  async createDashboard(dashboard: InsertDashboard): Promise<Dashboard> {
+    await this.ensureAnonymousUser(dashboard.userId);
+    const [created] = await db.insert(dashboards).values(dashboard).returning();
+    return created;
+  }
+
+  async getDashboard(id: string): Promise<Dashboard | undefined> {
+    const [dashboard] = await db.select().from(dashboards).where(eq(dashboards.id, id));
+    return dashboard;
+  }
+
+  async getDashboardsByUser(userId: string): Promise<Dashboard[]> {
+    return await db
+      .select()
+      .from(dashboards)
+      .where(eq(dashboards.userId, userId))
+      .orderBy(desc(dashboards.createdAt));
+  }
+
+  async getDashboardsByDataset(datasetId: string): Promise<Dashboard[]> {
+    return await db
+      .select()
+      .from(dashboards)
+      .where(eq(dashboards.datasetId, datasetId))
+      .orderBy(desc(dashboards.createdAt));
+  }
+
+  async updateDashboard(id: string, updates: Partial<Dashboard>): Promise<Dashboard> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(dashboards)
+      .set(updateData)
+      .where(eq(dashboards.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteDashboard(id: string): Promise<void> {
+    await db.delete(dashboards).where(eq(dashboards.id, id));
+  }
+
+  async createVisualization(visualization: InsertVisualization): Promise<Visualization> {
+    const [created] = await db.insert(visualizations).values(visualization).returning();
+    return created;
+  }
+
+  async getVisualization(id: string): Promise<Visualization | undefined> {
+    const [visualization] = await db.select().from(visualizations).where(eq(visualizations.id, id));
+    return visualization;
+  }
+
+  async getVisualizationsByDashboard(dashboardId: string): Promise<Visualization[]> {
+    return await db
+      .select()
+      .from(visualizations)
+      .where(eq(visualizations.dashboardId, dashboardId))
+      .orderBy(visualizations.createdAt);
+  }
+
+  async updateVisualization(id: string, updates: Partial<Visualization>): Promise<Visualization> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    const [updated] = await db
+      .update(visualizations)
+      .set(updateData)
+      .where(eq(visualizations.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteVisualization(id: string): Promise<void> {
+    await db.delete(visualizations).where(eq(visualizations.id, id));
+  }
+
+  async createQuery(query: InsertQuery): Promise<Query> {
+    await this.ensureAnonymousUser(query.userId);
+    const [created] = await db.insert(queries).values(query).returning();
+    return created;
+  }
+
+  async getQuery(id: string): Promise<Query | undefined> {
+    const [query] = await db.select().from(queries).where(eq(queries.id, id));
+    return query;
+  }
+
+  async getQueriesByDataset(datasetId: string): Promise<Query[]> {
+    return await db
+      .select()
+      .from(queries)
+      .where(eq(queries.datasetId, datasetId))
+      .orderBy(desc(queries.executedAt));
+  }
+
+  async getQueriesByUser(userId: string): Promise<Query[]> {
+    return await db
+      .select()
+      .from(queries)
+      .where(eq(queries.userId, userId))
+      .orderBy(desc(queries.executedAt));
+  }
+
+  async deleteQuery(id: string): Promise<void> {
+    await db.delete(queries).where(eq(queries.id, id));
   }
 }
 
