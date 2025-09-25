@@ -86,7 +86,7 @@ app.use((req, res, next) => {
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
   // Start Python FastAPI service on port 8000
-  const pythonProcess = spawn('python', ['-m', 'uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '8000'], {
+  const pythonProcess = spawn('uv', ['run', 'python', '-m', 'uvicorn', 'app.main:app', '--host', '0.0.0.0', '--port', '8000'], {
     cwd: process.cwd(),
     stdio: ['ignore', 'pipe', 'pipe']
   });
