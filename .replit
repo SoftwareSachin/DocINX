@@ -60,10 +60,6 @@ localPort = 42849
 externalPort = 8080
 
 [[ports]]
-localPort = 46415
-externalPort = 8081
-
-[[ports]]
 localPort = 46815
 externalPort = 6800
 
@@ -72,6 +68,7 @@ PORT = "5000"
 
 [agent]
 integrations = ["javascript_log_in_with_replit:1.0.0", "javascript_database:1.0.0", "javascript_openai:1.0.0", "javascript_gemini:1.0.0", "javascript_anthropic:1.0.0", "javascript_xai:1.0.0", "perplexity_v0:1.0.0"]
+expertMode = true
 
 [workflows]
 runButton = "Project"
