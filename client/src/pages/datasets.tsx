@@ -178,16 +178,30 @@ export default function Datasets() {
   };
 
   const handleCreateDashboard = () => {
-    const dashboardName = selectedDataset 
-      ? `${selectedDataset.name} Dashboard` 
-      : `Dashboard ${Date.now()}`;
+    if (!selectedDataset) {
+      toast({
+        title: "No dataset selected",
+        description: "Please select a dataset first to create a dashboard",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const dashboardName = `${selectedDataset.name} Dashboard`;
     
     createDashboardMutation.mutate({
       name: dashboardName,
-      description: selectedDataset 
-        ? `Auto-generated dashboard for ${selectedDataset.name}` 
-        : "New dashboard",
-      datasetId: selectedDataset?.id
+      description: `Auto-generated dashboard for ${selectedDataset.name}`,
+      datasetId: selectedDataset.id,
+      layout: {
+        grid: {
+          columns: 12,
+          rows: 8,
+          cellHeight: 100
+        },
+        widgets: [],
+        theme: "default"
+      }
     });
   };
 
