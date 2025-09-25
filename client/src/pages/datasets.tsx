@@ -198,13 +198,10 @@ export default function Datasets() {
       description: `Auto-generated dashboard for ${selectedDataset.name}`,
       datasetId: selectedDataset.id,
       layout: {
-        grid: {
-          columns: 12,
-          rows: 8,
-          cellHeight: 100
-        },
-        widgets: [],
-        theme: "default"
+        theme: 'corporate',
+        backgroundColor: '#f8fafc',
+        gridSize: 20,
+        showGrid: true
       }
     });
   };

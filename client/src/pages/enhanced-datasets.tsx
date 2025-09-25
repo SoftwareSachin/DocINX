@@ -119,10 +119,10 @@ export default function EnhancedDatasets() {
         ...dashboardData,
         datasetId: selectedDatasets[0]?.id,
         layout: {
-          grid: { columns: 12, rows: 8, cellHeight: 100 },
-          widgets: [],
-          theme: "corporate",
-          backgroundColor: "#f8fafc"
+          theme: 'corporate',
+          backgroundColor: '#f8fafc',
+          gridSize: 20,
+          showGrid: true
         }
       });
     },

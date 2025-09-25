@@ -472,7 +472,7 @@ export default function PowerBIDashboard({
                 <label className="text-sm font-medium mb-2 block">Widgets</label>
                 <ScrollArea className="h-64">
                   <div className="space-y-2">
-                    {dashboard.widgets.map(widget => (
+                    {(dashboard.widgets || []).map(widget => (
                       <div
                         key={widget.id}
                         className={`p-3 border rounded-lg cursor-pointer transition-colors ${
@@ -519,17 +519,17 @@ export default function PowerBIDashboard({
               ref={canvasRef}
               className="relative w-full h-full min-h-96"
               style={{ 
-                backgroundColor: dashboard.layout.backgroundColor,
-                backgroundImage: dashboard.layout.showGrid 
+                backgroundColor: dashboard.layout?.backgroundColor || '#f8fafc',
+                backgroundImage: dashboard.layout?.showGrid 
                   ? `radial-gradient(circle, #e5e7eb 1px, transparent 1px)`
                   : 'none',
-                backgroundSize: dashboard.layout.showGrid 
-                  ? `${dashboard.layout.gridSize}px ${dashboard.layout.gridSize}px` 
+                backgroundSize: dashboard.layout?.showGrid 
+                  ? `${dashboard.layout?.gridSize || 20}px ${dashboard.layout?.gridSize || 20}px` 
                   : 'auto'
               }}
               data-testid="dashboard-canvas"
             >
-              {dashboard.widgets.length === 0 ? (
+              {(dashboard.widgets?.length || 0) === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center">
                     <Layout className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -555,7 +555,7 @@ export default function PowerBIDashboard({
                 </div>
               ) : (
                 <div className="grid grid-cols-12 gap-4 h-full">
-                  {dashboard.widgets.map(widget => (
+                  {(dashboard.widgets || []).map(widget => (
                     <div
                       key={widget.id}
                       className={`bg-white rounded-lg shadow-sm border transition-all ${
