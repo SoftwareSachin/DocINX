@@ -586,6 +586,283 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics routes
+  const analyticsService = (await import("./services/analyticsService")).analyticsService;
+
+  // Dataset routes
+  app.post('/api/datasets/upload', upload.single('file'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file provided' });
+      }
+
+      const userId = req.query.user_id || 'anonymous-user';
+      const { name, description } = req.body;
+
+      // Validate file type
+      if (!['text/csv', 'application/csv', 'application/vnd.ms-excel'].includes(req.file.mimetype)) {
+        return res.status(400).json({ message: 'Only CSV files are supported' });
+      }
+
+      // Create initial dataset record
+      const dataset = await storage.createDataset({
+        name: name || req.file.originalname,
+        description: description || '',
+        userId,
+        originalFilename: req.file.originalname,
+        fileKey: `datasets/${Date.now()}-${req.file.originalname}`,
+        mimeType: req.file.mimetype,
+        fileSize: req.file.size,
+        status: 'processing'
+      });
+
+      // Process CSV in background
+      setImmediate(async () => {
+        try {
+          const processed = await analyticsService.processCSV(req.file.buffer);
+          
+          await storage.updateDataset(dataset.id, {
+            status: 'ready',
+            rowCount: processed.statistics.totalRows,
+            columnCount: processed.statistics.totalColumns,
+            columns: processed.columns,
+            relationships: processed.relationships,
+            statistics: processed.statistics,
+            processedAt: new Date()
+          });
+        } catch (error) {
+          console.error('Dataset processing error:', error);
+          await storage.updateDataset(dataset.id, {
+            status: 'failed',
+            errorMessage: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      });
+
+      res.json(dataset);
+    } catch (error) {
+      console.error('Dataset upload error:', error);
+      res.status(500).json({ message: 'Failed to upload dataset' });
+    }
+  });
+
+  app.get('/api/datasets', async (req: any, res) => {
+    try {
+      const userId = req.query.user_id || 'anonymous-user';
+      const datasets = await storage.getDatasetsByUser(userId);
+      res.json(datasets);
+    } catch (error) {
+      console.error('Error fetching datasets:', error);
+      res.status(500).json({ message: 'Failed to fetch datasets' });
+    }
+  });
+
+  app.get('/api/datasets/:id', async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const dataset = await storage.getDataset(id);
+      
+      if (!dataset) {
+        return res.status(404).json({ message: 'Dataset not found' });
+      }
+      
+      res.json(dataset);
+    } catch (error) {
+      console.error('Error fetching dataset:', error);
+      res.status(500).json({ message: 'Failed to fetch dataset' });
+    }
+  });
+
+  app.delete('/api/datasets/:id', async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteDataset(id);
+      res.json({ message: 'Dataset deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting dataset:', error);
+      res.status(500).json({ message: 'Failed to delete dataset' });
+    }
+  });
+
+  // Dashboard routes
+  app.post('/api/dashboards', async (req: any, res) => {
+    try {
+      const userId = req.query.user_id || 'anonymous-user';
+      const dashboard = await storage.createDashboard({
+        ...req.body,
+        userId
+      });
+      res.json(dashboard);
+    } catch (error) {
+      console.error('Error creating dashboard:', error);
+      res.status(500).json({ message: 'Failed to create dashboard' });
+    }
+  });
+
+  app.get('/api/dashboards', async (req: any, res) => {
+    try {
+      const userId = req.query.user_id || 'anonymous-user';
+      const datasetId = req.query.dataset_id;
+      
+      const dashboards = datasetId 
+        ? await storage.getDashboardsByDataset(datasetId)
+        : await storage.getDashboardsByUser(userId);
+        
+      res.json(dashboards);
+    } catch (error) {
+      console.error('Error fetching dashboards:', error);
+      res.status(500).json({ message: 'Failed to fetch dashboards' });
+    }
+  });
+
+  app.get('/api/dashboards/:id', async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const dashboard = await storage.getDashboard(id);
+      
+      if (!dashboard) {
+        return res.status(404).json({ message: 'Dashboard not found' });
+      }
+      
+      // Also fetch visualizations for this dashboard
+      const visualizations = await storage.getVisualizationsByDashboard(id);
+      
+      res.json({
+        ...dashboard,
+        visualizations
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard:', error);
+      res.status(500).json({ message: 'Failed to fetch dashboard' });
+    }
+  });
+
+  app.put('/api/dashboards/:id', async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const dashboard = await storage.updateDashboard(id, req.body);
+      res.json(dashboard);
+    } catch (error) {
+      console.error('Error updating dashboard:', error);
+      res.status(500).json({ message: 'Failed to update dashboard' });
+    }
+  });
+
+  app.delete('/api/dashboards/:id', async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteDashboard(id);
+      res.json({ message: 'Dashboard deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting dashboard:', error);
+      res.status(500).json({ message: 'Failed to delete dashboard' });
+    }
+  });
+
+  // Visualization routes
+  app.post('/api/visualizations', async (req: any, res) => {
+    try {
+      const visualization = await storage.createVisualization(req.body);
+      res.json(visualization);
+    } catch (error) {
+      console.error('Error creating visualization:', error);
+      res.status(500).json({ message: 'Failed to create visualization' });
+    }
+  });
+
+  app.get('/api/visualizations', async (req: any, res) => {
+    try {
+      const { dashboard_id } = req.query;
+      
+      if (!dashboard_id) {
+        return res.status(400).json({ message: 'dashboard_id is required' });
+      }
+      
+      const visualizations = await storage.getVisualizationsByDashboard(dashboard_id);
+      res.json(visualizations);
+    } catch (error) {
+      console.error('Error fetching visualizations:', error);
+      res.status(500).json({ message: 'Failed to fetch visualizations' });
+    }
+  });
+
+  app.put('/api/visualizations/:id', async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const visualization = await storage.updateVisualization(id, req.body);
+      res.json(visualization);
+    } catch (error) {
+      console.error('Error updating visualization:', error);
+      res.status(500).json({ message: 'Failed to update visualization' });
+    }
+  });
+
+  app.delete('/api/visualizations/:id', async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteVisualization(id);
+      res.json({ message: 'Visualization deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting visualization:', error);
+      res.status(500).json({ message: 'Failed to delete visualization' });
+    }
+  });
+
+  // Natural language query routes
+  app.post('/api/datasets/:datasetId/query', async (req: any, res) => {
+    try {
+      const { datasetId } = req.params;
+      const { queryText } = req.body;
+      const userId = req.query.user_id || 'anonymous-user';
+
+      // Get dataset
+      const dataset = await storage.getDataset(datasetId);
+      if (!dataset || !dataset.columns) {
+        return res.status(404).json({ message: 'Dataset not found or not processed' });
+      }
+
+      // Cast columns to proper type
+      const columns = dataset.columns as any[];
+      
+      // Generate SQL and suggested visualization
+      const { sql, visualization } = await analyticsService.generateSQL(
+        columns.map((col: any) => col.name),
+        queryText,
+        columns
+      );
+
+      // Save query
+      const query = await storage.createQuery({
+        datasetId,
+        userId,
+        queryText,
+        sqlQuery: sql,
+        visualizationType: visualization,
+        results: null // Would be populated when actually executed
+      });
+
+      res.json({
+        query,
+        suggestedVisualization: visualization,
+        sql
+      });
+    } catch (error) {
+      console.error('Error processing query:', error);
+      res.status(500).json({ message: 'Failed to process query' });
+    }
+  });
+
+  app.get('/api/datasets/:datasetId/queries', async (req: any, res) => {
+    try {
+      const { datasetId } = req.params;
+      const queries = await storage.getQueriesByDataset(datasetId);
+      res.json(queries);
+    } catch (error) {
+      console.error('Error fetching queries:', error);
+      res.status(500).json({ message: 'Failed to fetch queries' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
