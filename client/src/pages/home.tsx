@@ -115,8 +115,8 @@ export default function Home() {
                       {statsLoading ? "..." : (stats as any)?.processing || 0}
                     </p>
                   </div>
-                  <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-                    <Cog className="h-6 w-6 text-orange-600 dark:text-orange-400 animate-spin" />
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
               </CardContent>

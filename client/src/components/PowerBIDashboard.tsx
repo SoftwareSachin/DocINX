@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BarChart3, LineChart, PieChart, TrendingUp, Database, 
   Settings, Download, Share2, Maximize2, Minimize2,
-  Filter, Calendar, Hash, Type, Target, Activity,
+  Filter, Calendar, Hash, Type, Activity,
   Grid3x3, Layout, Palette, Eye, Save, Plus, X,
   RefreshCw, ZoomIn, ZoomOut, Move, RotateCw
 } from 'lucide-react';
@@ -323,7 +323,7 @@ export default function PowerBIDashboard({
       case 'line': return <LineChart className="h-4 w-4" />;
       case 'pie': return <PieChart className="h-4 w-4" />;
       case 'doughnut': return <PieChart className="h-4 w-4" />;
-      case 'kpi': return <Target className="h-4 w-4" />;
+      case 'kpi': return <BarChart3 className="h-4 w-4" />;
       case 'table': return <Grid3x3 className="h-4 w-4" />;
       default: return <BarChart3 className="h-4 w-4" />;
     }
@@ -344,7 +344,7 @@ export default function PowerBIDashboard({
                 )}
               </div>
               <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                {dashboard.widgets.length} widget{dashboard.widgets.length !== 1 ? 's' : ''}
+                {(dashboard.widgets?.length || 0)} widget{(dashboard.widgets?.length || 0) !== 1 ? 's' : ''}
               </Badge>
             </div>
             
