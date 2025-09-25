@@ -15,10 +15,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Search, Upload, Database, BarChart3, FileSpreadsheet, 
-  TrendingUp, Users, CheckCircle, AlertCircle, Clock, 
+  Users, CheckCircle, AlertCircle, Clock, 
   Activity, PieChart, LineChart, Table, GitBranch,
-  Settings, Eye, Filter, MessageSquare, Sparkles,
-  Layout as LayoutIcon, Target, Zap
+  Settings, Eye, Filter, MessageSquare,
+  Layout as LayoutIcon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -55,7 +55,7 @@ export default function EnhancedDatasets() {
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("upload");
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
-  const [currentDashboard, setCurrentDashboard] = useState(null);
+  const [currentDashboard, setCurrentDashboard] = useState<Dashboard | null>(null);
   const { toast } = useToast();
   
   // Form instances
@@ -255,7 +255,7 @@ export default function EnhancedDatasets() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <Sparkles className="h-8 w-8 text-indigo-600" />
+                <Database className="h-8 w-8 text-gray-700" />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Professional Data Analytics</h1>
                   <p className="text-gray-600">Enterprise-grade business intelligence platform</p>
@@ -278,7 +278,7 @@ export default function EnhancedDatasets() {
               <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline" data-testid="button-new-project">
-                    <Target className="h-4 w-4 mr-2" />
+                    <Settings className="h-4 w-4 mr-2" />
                     New Project
                   </Button>
                 </DialogTrigger>
