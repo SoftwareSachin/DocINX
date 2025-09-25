@@ -123,11 +123,15 @@ export default function Datasets() {
 
   // Dashboard creation mutation
   const createDashboardMutation = useMutation({
-    mutationFn: async (dashboardData: { name: string; description?: string; datasetId?: string }) => {
+    mutationFn: async (dashboardData: { name: string; description?: string; datasetId?: string; layout?: any }) => {
       return apiRequest('POST', '/api/dashboards?user_id=anonymous-user', dashboardData);
     },
     onSuccess: () => {
+      // Invalidate both general dashboards and dataset-specific dashboards
       queryClient.invalidateQueries({ queryKey: ['/api/dashboards'] });
+      if (selectedDataset?.id) {
+        queryClient.invalidateQueries({ queryKey: [`/api/dashboards?dataset_id=${selectedDataset.id}`] });
+      }
       toast({
         title: "Dashboard created",
         description: "Your dashboard has been created successfully."
