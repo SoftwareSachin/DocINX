@@ -7,9 +7,9 @@ channel = "stable-25_05"
 packages = ["glibcLocales", "libxcrypt", "postgresql", "redis"]
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "vm"
 build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+run = ["bash", "-c", "uv run python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 & npm run start"]
 
 [[ports]]
 localPort = 5000
