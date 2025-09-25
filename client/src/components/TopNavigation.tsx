@@ -19,7 +19,7 @@ export default function TopNavigation({ activeTab = "workspace" }: TopNavigation
   ];
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-3">
+    <div className="bg-card border-b border-border px-6 py-3">
       <div className="flex items-center justify-between">
         {/* Navigation Tabs */}
         <div className="flex items-center space-x-8">
@@ -28,8 +28,8 @@ export default function TopNavigation({ activeTab = "workspace" }: TopNavigation
               key={tab.key}
               className={`text-sm font-medium px-3 py-2 rounded-md transition-colors ${
                 activeTab === tab.key
-                  ? "text-indigo-600 bg-indigo-50"
-                  : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  ? "text-foreground bg-muted"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               }`}
             >
               {tab.name}
@@ -40,7 +40,7 @@ export default function TopNavigation({ activeTab = "workspace" }: TopNavigation
         {/* Right Section */}
         <div className="flex items-center space-x-4">
           {/* Settings */}
-          <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
             <Settings className="h-4 w-4" />
           </Button>
 
@@ -48,11 +48,11 @@ export default function TopNavigation({ activeTab = "workspace" }: TopNavigation
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center space-x-2 text-sm">
-                <span className="text-gray-700">DocINX FastAPI</span>
-                <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-medium">AF</span>
+                <span className="text-foreground">DocINX FastAPI</span>
+                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                  <span className="text-primary-foreground text-xs font-medium">AF</span>
                 </div>
-                <ChevronDown className="h-3 w-3 text-gray-500" />
+                <ChevronDown className="h-3 w-3 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">

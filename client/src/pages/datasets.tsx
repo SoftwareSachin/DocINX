@@ -219,10 +219,10 @@ export default function Datasets() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ready': return 'bg-green-100 text-green-800';
-      case 'processing': return 'bg-yellow-100 text-yellow-800';
-      case 'failed': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'ready': return 'bg-muted text-foreground';
+      case 'processing': return 'bg-muted text-muted-foreground';
+      case 'failed': return 'bg-destructive/10 text-destructive';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -250,22 +250,22 @@ export default function Datasets() {
       <Layout currentPage="datasets">
         <div className="h-full flex flex-col">
           {/* Header Section */}
-          <div className="border-b border-gray-200 bg-white px-6 py-4">
+          <div className="border-b border-border bg-card px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <Database className="h-6 w-6 text-indigo-600" />
+                <Database className="h-6 w-6 text-primary" />
                 <div>
-                  <h1 className="text-xl font-semibold text-gray-900">Data Analytics Platform</h1>
-                  <p className="text-sm text-gray-500">Upload, analyze, and visualize your data</p>
+                  <h1 className="text-xl font-semibold text-foreground">Professional Data Analytics</h1>
+                  <p className="text-sm text-muted-foreground">Enterprise-grade business intelligence platform</p>
                 </div>
-                <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200">
+                <Badge variant="outline" className="bg-muted text-muted-foreground border-border">
                   {filteredDatasets.length} dataset{filteredDatasets.length !== 1 ? 's' : ''}
                 </Badge>
               </div>
               
               <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-indigo-600 hover:bg-indigo-700" data-testid="button-upload-dataset">
+                  <Button className="bg-primary hover:bg-primary/90" data-testid="button-upload-dataset">
                     <Upload className="h-4 w-4 mr-2" />
                     Upload Dataset
                   </Button>
@@ -372,12 +372,12 @@ export default function Datasets() {
           </div>
 
           {/* Search Bar */}
-          <div className="px-6 py-4 bg-gray-50">
+          <div className="px-6 py-4 bg-muted/30">
             <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Search datasets..."
-                className="pl-10 bg-white"
+                className="pl-10 bg-card"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 data-testid="input-search-datasets"
@@ -388,7 +388,7 @@ export default function Datasets() {
           {/* Main Content */}
           <div className="flex-1 flex">
             {/* Datasets List */}
-            <div className="w-1/3 border-r border-gray-200 bg-white overflow-y-auto">
+            <div className="w-1/3 border-r border-border bg-card overflow-y-auto">
               <div className="p-4">
                 {isDatasetsLoading ? (
                   <div className="space-y-3">
@@ -400,12 +400,12 @@ export default function Datasets() {
                   </div>
                 ) : filteredDatasets.length === 0 ? (
                   <Card className="p-8 text-center">
-                    <Database className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No Datasets</h3>
-                    <p className="text-gray-500 mb-4">Upload your first CSV file to get started</p>
+                    <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">No Datasets</h3>
+                    <p className="text-muted-foreground mb-4">Upload your first CSV file to get started</p>
                     <Button 
                       onClick={() => setIsUploadDialogOpen(true)}
-                      className="bg-indigo-600 hover:bg-indigo-700"
+                      className="bg-primary hover:bg-primary/90"
                       data-testid="button-upload-first-dataset"
                     >
                       <Upload className="h-4 w-4 mr-2" />
@@ -418,23 +418,23 @@ export default function Datasets() {
                       <Card 
                         key={dataset.id}
                         className={`cursor-pointer transition-all hover:shadow-md ${
-                          selectedDataset?.id === dataset.id ? 'ring-2 ring-indigo-500 bg-indigo-50' : ''
+                          selectedDataset?.id === dataset.id ? 'ring-2 ring-primary bg-muted/50' : ''
                         }`}
                         onClick={() => setSelectedDataset(dataset)}
                         data-testid={`card-dataset-${dataset.id}`}
                       >
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between mb-2">
-                            <h3 className="font-medium text-gray-900 truncate flex-1">{dataset.name}</h3>
+                            <h3 className="font-medium text-foreground truncate flex-1">{dataset.name}</h3>
                             <Badge className={`ml-2 ${getStatusColor(dataset.status)} flex items-center space-x-1`}>
                               {getStatusIcon(dataset.status)}
                               <span className="capitalize">{dataset.status}</span>
                             </Badge>
                           </div>
                           
-                          <p className="text-sm text-gray-500 mb-2 truncate">{dataset.originalFilename}</p>
+                          <p className="text-sm text-muted-foreground mb-2 truncate">{dataset.originalFilename}</p>
                           
-                          <div className="flex items-center text-xs text-gray-400 space-x-4">
+                          <div className="flex items-center text-xs text-muted-foreground space-x-4">
                             <span>{formatFileSize(dataset.fileSize)}</span>
                             {dataset.rowCount && (
                               <span>{dataset.rowCount.toLocaleString()} rows</span>
@@ -456,14 +456,14 @@ export default function Datasets() {
             </div>
 
             {/* Dataset Details */}
-            <div className="flex-1 bg-gray-50 overflow-y-auto">
+            <div className="flex-1 bg-muted/30 overflow-y-auto">
               {selectedDataset ? (
                 <div className="p-6">
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h2 className="text-2xl font-bold text-gray-900">{selectedDataset.name}</h2>
-                        <p className="text-gray-500">{selectedDataset.originalFilename}</p>
+                        <h2 className="text-2xl font-bold text-foreground">{selectedDataset.name}</h2>
+                        <p className="text-muted-foreground">{selectedDataset.originalFilename}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge className={getStatusColor(selectedDataset.status)}>
@@ -474,7 +474,7 @@ export default function Datasets() {
                     </div>
 
                     {selectedDataset.description && (
-                      <p className="text-gray-600 mb-4">{selectedDataset.description}</p>
+                      <p className="text-muted-foreground mb-4">{selectedDataset.description}</p>
                     )}
 
                     {selectedDataset.status === 'failed' && selectedDataset.errorMessage && (
@@ -510,28 +510,28 @@ export default function Datasets() {
                             <CardContent>
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                                 <div className="text-center">
-                                  <div className="text-2xl font-bold text-indigo-600">
+                                  <div className="text-2xl font-bold text-foreground">
                                     {selectedDataset.statistics.totalRows?.toLocaleString()}
                                   </div>
-                                  <div className="text-sm text-gray-500">Total Rows</div>
+                                  <div className="text-sm text-muted-foreground">Total Rows</div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="text-2xl font-bold text-green-600">
+                                  <div className="text-2xl font-bold text-foreground">
                                     {selectedDataset.statistics.totalColumns}
                                   </div>
-                                  <div className="text-sm text-gray-500">Columns</div>
+                                  <div className="text-sm text-muted-foreground">Columns</div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="text-2xl font-bold text-purple-600">
+                                  <div className="text-2xl font-bold text-foreground">
                                     {selectedDataset.statistics.completeness?.toFixed(1)}%
                                   </div>
-                                  <div className="text-sm text-gray-500">Completeness</div>
+                                  <div className="text-sm text-muted-foreground">Completeness</div>
                                 </div>
                                 <div className="text-center">
-                                  <div className="text-2xl font-bold text-orange-600">
+                                  <div className="text-2xl font-bold text-foreground">
                                     {formatFileSize(selectedDataset.statistics.memoryUsage || 0)}
                                   </div>
-                                  <div className="text-sm text-gray-500">Memory Usage</div>
+                                  <div className="text-sm text-muted-foreground">Memory Usage</div>
                                 </div>
                               </div>
                               <p className="text-gray-600">{selectedDataset.statistics.overview}</p>
@@ -647,7 +647,7 @@ export default function Datasets() {
                               {(dashboards as Dashboard[]).length > 0 && (
                                 <Button 
                                   size="sm" 
-                                  className="bg-indigo-600 hover:bg-indigo-700"
+                                  className="bg-primary hover:bg-primary/90"
                                   onClick={handleCreateDashboard}
                                   disabled={createDashboardMutation.isPending}
                                 >
@@ -663,7 +663,7 @@ export default function Datasets() {
                                 <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                                 <p className="mb-4">No dashboards created yet</p>
                                 <Button 
-                                  className="bg-indigo-600 hover:bg-indigo-700"
+                                  className="bg-primary hover:bg-primary/90"
                                   onClick={handleCreateDashboard}
                                   disabled={createDashboardMutation.isPending}
                                 >

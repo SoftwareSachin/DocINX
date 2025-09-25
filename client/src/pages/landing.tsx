@@ -22,7 +22,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-20">
           <div className="text-center">
             <div className="flex flex-col items-center gap-6 mb-8">
-              <div className="h-40 w-96 overflow-hidden flex items-center justify-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-xl border border-blue-100 dark:border-blue-800/30 shadow-lg">
+              <div className="h-40 w-96 overflow-hidden flex items-center justify-center bg-card rounded-lg border border-border shadow-sm">
                 <img 
                   src="/assets/Transparent_DocINX_logo_design_a0f58ebd.png?v=2" 
                   alt="DocINX logo" 
@@ -98,8 +98,8 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <Card className="border-border hover:shadow-lg transition-shadow duration-300" data-testid="card-feature-upload">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
-                  <Upload className="h-8 w-8 text-primary" />
+                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-6">
+                  <Upload className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Smart Upload</h3>
                 <p className="text-muted-foreground leading-relaxed">
@@ -110,8 +110,8 @@ export default function Landing() {
 
             <Card className="border-border hover:shadow-lg transition-shadow duration-300" data-testid="card-feature-search">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-chart-2/10 rounded-xl flex items-center justify-center mb-6">
-                  <Search className="h-8 w-8 text-chart-2" />
+                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-6">
+                  <Search className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Vector Search</h3>
                 <p className="text-muted-foreground leading-relaxed">
@@ -122,8 +122,8 @@ export default function Landing() {
 
             <Card className="border-border hover:shadow-lg transition-shadow duration-300" data-testid="card-feature-chat">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-chart-1/10 rounded-xl flex items-center justify-center mb-6">
-                  <Bot className="h-8 w-8 text-chart-1" />
+                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-6">
+                  <Bot className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">RAG Chat</h3>
                 <p className="text-muted-foreground leading-relaxed">
@@ -134,8 +134,8 @@ export default function Landing() {
 
             <Card className="border-border hover:shadow-lg transition-shadow duration-300" data-testid="card-feature-security">
               <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-chart-4/10 rounded-xl flex items-center justify-center mb-6">
-                  <Users className="h-8 w-8 text-chart-4" />
+                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mb-6">
+                  <Users className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Team Management</h3>
                 <p className="text-muted-foreground leading-relaxed">
@@ -148,7 +148,7 @@ export default function Landing() {
       </div>
 
       {/* CTA Section */}
-      <div className="py-20 bg-primary/5">
+      <div className="py-20 bg-muted/30">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <Badge variant="outline" className="mb-6" data-testid="badge-cta">
             Ready to Get Started?
