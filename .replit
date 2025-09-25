@@ -7,9 +7,9 @@ channel = "stable-25_05"
 packages = ["glibcLocales", "libxcrypt", "postgresql", "redis"]
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "vm"
 build = ["npm", "run", "build"]
-run = ["npm", "run", "start"]
+run = ["npm", "start"]
 
 [[ports]]
 localPort = 5000
