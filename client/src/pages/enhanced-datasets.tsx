@@ -55,7 +55,22 @@ export default function EnhancedDatasets() {
   const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("upload");
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
-  const [currentDashboard, setCurrentDashboard] = useState<Dashboard | null>(null);
+  // Define a frontend dashboard type that includes widgets
+  interface FrontendDashboard {
+    id: string;
+    name: string;
+    description?: string;
+    widgets: any[];
+    layout: {
+      theme: 'light' | 'dark' | 'corporate';
+      backgroundColor: string;
+      gridSize: number;
+      showGrid: boolean;
+    };
+    filters: any[];
+  }
+  
+  const [currentDashboard, setCurrentDashboard] = useState<FrontendDashboard | null>(null);
   const { toast } = useToast();
   
   // Form instances
@@ -128,7 +143,21 @@ export default function EnhancedDatasets() {
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['/api/dashboards'] });
-      setCurrentDashboard(result);
+      // Convert API Dashboard to Frontend Dashboard
+      const frontendDashboard: FrontendDashboard = {
+        id: result.id,
+        name: result.name,
+        description: result.description || '',
+        widgets: [],
+        layout: {
+          theme: 'corporate' as const,
+          backgroundColor: '#f8fafc',
+          gridSize: 20,
+          showGrid: true
+        },
+        filters: []
+      };
+      setCurrentDashboard(frontendDashboard);
       setActiveTab("dashboard");
       
       toast({
@@ -179,14 +208,59 @@ export default function EnhancedDatasets() {
 
   const handleCreateVisualization = (queryResult: any) => {
     // Create a new widget for the dashboard based on query result
+    const newWidget = {
+      id: `widget_${Date.now()}`,
+      type: queryResult.visualizationType || 'table',
+      title: queryResult.query || 'Query Result',
+      position: { x: 0, y: 0, width: 6, height: 4 },
+      data: queryResult.result || {},
+      config: {},
+      filters: [],
+      sql: queryResult.sql,
+      queryId: queryResult.id
+    };
+
     if (currentDashboard) {
+      // Add widget to existing dashboard
+      const updatedDashboard = {
+        ...currentDashboard,
+        widgets: [...(currentDashboard.widgets || []), newWidget]
+      };
+      setCurrentDashboard(updatedDashboard);
+      
       toast({
         title: "Visualization created",
         description: `Added ${queryResult.visualizationType} chart to your dashboard`
       });
+      
+      // Switch to dashboard tab to show the new widget
+      setActiveTab("dashboard");
     } else {
       // Create new dashboard with this visualization
-      handleCreateDashboard(selectedColumns);
+      const dashboardName = `Query Dashboard - ${selectedDatasets.map(d => d.name).join(', ')}`;
+      
+      // Create dashboard with the new widget
+      const newDashboard = {
+        id: `dashboard_${Date.now()}`,
+        name: dashboardName,
+        description: `Dashboard created from query: ${queryResult.query}`,
+        widgets: [newWidget],
+        layout: {
+          theme: 'corporate' as const,
+          backgroundColor: '#f8fafc',
+          gridSize: 20,
+          showGrid: true
+        },
+        filters: []
+      };
+      
+      setCurrentDashboard(newDashboard);
+      setActiveTab("dashboard");
+      
+      toast({
+        title: "Dashboard created",
+        description: "New dashboard created with your visualization"
+      });
     }
   };
 
