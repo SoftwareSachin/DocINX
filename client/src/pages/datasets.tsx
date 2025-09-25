@@ -68,21 +68,19 @@ export default function Datasets() {
 
   // Fetch datasets
   const { data: datasets = [], isLoading: isDatasetsLoading } = useQuery({
-    queryKey: ['/api/datasets', 'anonymous-user'],
-    queryFn: () => apiRequest('/api/datasets?user_id=anonymous-user')
+    queryKey: ['/api/datasets?user_id=anonymous-user']
   });
 
   // Fetch dashboards for selected dataset  
   const { data: dashboards = [] } = useQuery({
-    queryKey: ['/api/dashboards', selectedDataset?.id],
-    queryFn: () => selectedDataset ? apiRequest(`/api/dashboards?dataset_id=${selectedDataset.id}`) : Promise.resolve([]),
+    queryKey: [`/api/dashboards?dataset_id=${selectedDataset?.id}`],
     enabled: !!selectedDataset
   });
 
   // Upload mutation
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return apiRequest('/api/datasets/upload?user_id=anonymous-user', 'POST', data);
+      return apiRequest('POST', '/api/datasets/upload?user_id=anonymous-user', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/datasets', 'anonymous-user'] });
@@ -105,7 +103,7 @@ export default function Datasets() {
   // Query mutation
   const queryMutation = useMutation({
     mutationFn: async ({ datasetId, queryText }: { datasetId: string; queryText: string }) => {
-      return apiRequest(`/api/datasets/${datasetId}/query?user_id=anonymous-user`, 'POST', { queryText });
+      return apiRequest('POST', `/api/datasets/${datasetId}/query?user_id=anonymous-user`, { queryText });
     },
     onSuccess: (result: any) => {
       queryForm.reset();
