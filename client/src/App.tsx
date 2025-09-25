@@ -11,7 +11,7 @@ import Documents from "@/pages/documents";
 import DocumentDetail from "@/pages/document-detail";
 import Chat from "@/pages/chat";
 import Admin from "@/pages/admin";
-import Datasets from "@/pages/datasets";
+import EnhancedDatasets from "@/pages/enhanced-datasets";
 import Search from "@/pages/search";
 import MCP from "@/pages/mcp";
 import Tools from "@/pages/tools";
@@ -25,7 +25,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/documents" component={Documents} />
       <Route path="/documents/:id" component={DocumentDetail} />
-      <Route path="/datasets" component={Datasets} />
+      <Route path="/datasets" component={EnhancedDatasets} />
       <Route path="/search" component={Search} />
       <Route path="/mcp" component={MCP} />
       <Route path="/tools" component={Tools} />
